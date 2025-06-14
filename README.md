@@ -1,1 +1,2 @@
-# jamiemlharper95.github.io
+# Jamie Harper's CV / Portfolio
+Hosted by GitHub
