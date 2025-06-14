@@ -1,0 +1,492 @@
+<!-- This is a single-page application sporting the classic game called SOS -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SOS Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background: #f0f4f8;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            margin-top: 32px;
+            color: #2d3a4b;
+            letter-spacing: 2px;
+        }
+        .game-container {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 32px 40px 24px 40px;
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(13, 40px);
+            grid-template-rows: repeat(7, 40px);
+            gap: 6px;
+            margin-bottom: 24px;
+        }
+        .cell {
+            width: 40px;
+            height: 40px;
+            background: #e3eaf2;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #2d3a4b;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            user-select: none;
+        }
+        /* Only color completed SOSes */
+        .cell.winner-s {
+            background: #ffd6db !important;
+            color: #d7263d !important;
+            animation: winner-glow-s 1s infinite alternate;
+        }
+        .cell.winner-o {
+            background: #dbeafe !important;
+            color: #2563eb !important;
+            animation: winner-glow-o 1s infinite alternate;
+        }
+        @keyframes winner-glow-s {
+            from { box-shadow: 0 0 8px #ffd6db; }
+            to   { box-shadow: 0 0 24px #ffd6db; }
+        }
+        @keyframes winner-glow-o {
+            from { box-shadow: 0 0 8px #dbeafe; }
+            to   { box-shadow: 0 0 24px #dbeafe; }
+        }
+        .controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .turn-indicator {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            color: #3a4a5c;
+        }
+        .turn-indicator.s-player {
+            color: #d7263d;
+        }
+        .turn-indicator.o-player {
+            color: #2563eb;
+        }
+        .scoreboard {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #2d3a4b;
+            display: flex;
+            gap: 24px;
+        }
+        .score-s {
+            color: #d7263d;
+            font-weight: bold;
+        }
+        .score-o {
+            color: #2563eb;
+            font-weight: bold;
+        }
+        button {
+            padding: 8px 18px;
+            border-radius: 6px;
+            border: none;
+            background: #2d3a4b;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #3a4a5c;
+        }
+        .message {
+            font-size: 1.1rem;
+            color: #d7263d;
+            margin-top: 10px;
+            min-height: 24px;
+        }
+        /* Modal Styles */
+        .modal-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(44, 62, 80, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        .modal-bg.active {
+            display: flex;
+        }
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            padding: 32px 24px 24px 24px;
+            min-width: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: modal-pop 0.2s;
+        }
+        @keyframes modal-pop {
+            from { transform: scale(0.9); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+        .modal-title {
+            font-size: 1.2rem;
+            margin-bottom: 18px;
+            color: #2d3a4b;
+        }
+        .modal-btns {
+            display: flex;
+            gap: 18px;
+        }
+        .modal-btn {
+            padding: 12px 28px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            border: none;
+            background: #e3eaf2;
+            color: #2d3a4b;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .modal-btn:hover {
+            background: #d0d8e8;
+        }
+        .modal-btn.s-player, .modal-btn.o-player {
+            /* Remove color for selection modal, use default */
+            background: #e3eaf2;
+            color: #2d3a4b;
+        }
+        .modal-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+            width: 100%;
+        }
+        .modal-inputs label {
+            font-size: 1rem;
+            color: #2d3a4b;
+        }
+        .modal-inputs input {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #b0b8c1;
+            font-size: 1rem;
+            width: 100%;
+        }
+        .modal-btn.start-btn {
+            width: 100%;
+            margin-top: 8px;
+            background: #2d3a4b;
+            color: #fff;
+        }
+        .modal-btn.start-btn:hover {
+            background: #3a4a5c;
+        }
+        @media (max-width: 900px) {
+            .board {
+                grid-template-columns: repeat(13, 26px);
+                grid-template-rows: repeat(7, 26px);
+            }
+            .cell {
+                width: 26px;
+                height: 26px;
+                font-size: 1rem;
+            }
+        }
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 16px 4px;
+            }
+            .modal {
+                min-width: 160px;
+                padding: 18px 8px 12px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>SOS Game</h1>
+    <div class="game-container">
+        <div class="controls">
+            <button id="restart-btn">Restart</button>
+        </div>
+        <div class="scoreboard" id="scoreboard"></div>
+        <div class="turn-indicator" id="turn-indicator"></div>
+        <div class="board" id="board"></div>
+        <div class="message" id="message"></div>
+    </div>
+    <!-- Modal for S/O selection -->
+    <div class="modal-bg" id="modal-bg">
+        <div class="modal">
+            <div class="modal-title" id="modal-title">Choose your letter</div>
+            <div class="modal-btns">
+                <button class="modal-btn s-player" id="modal-s">S</button>
+                <button class="modal-btn o-player" id="modal-o">O</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal for player names -->
+    <div class="modal-bg" id="name-modal-bg">
+        <div class="modal">
+            <div class="modal-title">Enter Player Names</div>
+            <div class="modal-inputs">
+                <label>
+                    <span style="color:#d7263d;font-weight:bold;">Player 1:</span>
+                    <input type="text" id="player-s-name" maxlength="16" placeholder="Player 1" autocomplete="off">
+                </label>
+                <label>
+                    <span style="color:#2563eb;font-weight:bold;">Player 2:</span>
+                    <input type="text" id="player-o-name" maxlength="16" placeholder="Player 2" autocomplete="off">
+                </label>
+            </div>
+            <button class="modal-btn start-btn" id="start-game-btn">Start Game</button>
+        </div>
+    </div>
+    <script>
+        const boardEl = document.getElementById('board');
+        const turnIndicator = document.getElementById('turn-indicator');
+        const messageEl = document.getElementById('message');
+        const restartBtn = document.getElementById('restart-btn');
+        const scoreboardEl = document.getElementById('scoreboard');
+        // Modal elements
+        const modalBg = document.getElementById('modal-bg');
+        const modalS = document.getElementById('modal-s');
+        const modalO = document.getElementById('modal-o');
+        // Name modal elements
+        const nameModalBg = document.getElementById('name-modal-bg');
+        const playerSNameInput = document.getElementById('player-s-name');
+        const playerONameInput = document.getElementById('player-o-name');
+        const startGameBtn = document.getElementById('start-game-btn');
+
+        // Fixed board size
+        const ROWS = 7;
+        const COLS = 13;
+
+        let board, currentPlayer, gameOver, scores, winnerCells, playerNames;
+        let pendingCell = null; // {r, c}
+
+        function initGame() {
+            board = Array.from({length: ROWS}, () => Array(COLS).fill(''));
+            currentPlayer = 'S';
+            gameOver = false;
+            scores = {S: 0, O: 0};
+            winnerCells = [];
+            pendingCell = null;
+            renderBoard();
+            updateTurnIndicator();
+            updateScoreboard();
+            messageEl.textContent = '';
+        }
+
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            // Flatten winnerCells for easy lookup, with player info
+            const flatWinners = [];
+            winnerCells.forEach(({cells, player}) => {
+                cells.forEach(([r, c]) => {
+                    flatWinners.push({r, c, player});
+                });
+            });
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.textContent = board[r][c];
+                    // Only color if part of a winning SOS
+                    const winner = flatWinners.find(w => w.r === r && w.c === c);
+                    if (winner) {
+                        cell.classList.add(winner.player === 'S' ? 'winner-s' : 'winner-o');
+                    }
+                    cell.addEventListener('click', onCellClick);
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function updateTurnIndicator() {
+            turnIndicator.classList.remove('s-player', 'o-player');
+            if (gameOver) {
+                turnIndicator.textContent = '';
+            } else {
+                turnIndicator.textContent = `Current Turn: ${playerNames[currentPlayer]}`;
+                turnIndicator.classList.add(currentPlayer === 'S' ? 's-player' : 'o-player');
+            }
+        }
+
+        function updateScoreboard() {
+            scoreboardEl.innerHTML = `
+                <span class="score-s">${playerNames.S}: <b>${scores.S}</b></span>
+                <span class="score-o">${playerNames.O}: <b>${scores.O}</b></span>
+            `;
+        }
+
+        function onCellClick(e) {
+            if (gameOver) return;
+            const r = parseInt(e.currentTarget.dataset.row);
+            const c = parseInt(e.currentTarget.dataset.col);
+            if (board[r][c]) return;
+            pendingCell = {r, c};
+            showModal();
+        }
+
+        function showModal() {
+            modalBg.classList.add('active');
+        }
+        function hideModal() {
+            modalBg.classList.remove('active');
+        }
+
+        modalS.onclick = () => handleLetter('S');
+        modalO.onclick = () => handleLetter('O');
+
+        function handleLetter(letter) {
+            if (!pendingCell) return;
+            const {r, c} = pendingCell;
+            board[r][c] = letter;
+            // Check for all new SOSes formed by this move
+            const newSOSes = findAllSOS(r, c, letter);
+            if (newSOSes.length > 0) {
+                scores[currentPlayer] += newSOSes.length;
+                // Store player info with each winning SOS
+                newSOSes.forEach(cells => winnerCells.push({cells, player: currentPlayer}));
+            }
+            renderBoard();
+            updateScoreboard();
+
+            // Check for end of game
+            if (board.flat().every(cell => cell)) {
+                gameOver = true;
+                showFinalResult();
+                updateTurnIndicator();
+                hideModal();
+                return;
+            }
+
+            // Always switch player after every move
+            currentPlayer = currentPlayer === 'S' ? 'O' : 'S';
+            updateTurnIndicator();
+            hideModal();
+            pendingCell = null;
+        }
+
+        // Returns array of arrays of winning cell coordinates for all new SOSes
+        function findAllSOS(r, c, letter) {
+            const directions = [
+                [[0, -1], [0, 1]],      // Horizontal
+                [[-1, 0], [1, 0]],      // Vertical
+                [[-1, -1], [1, 1]],     // Diagonal \
+                [[-1, 1], [1, -1]],     // Diagonal /
+            ];
+            let found = [];
+            for (const [[dr1, dc1], [dr2, dc2]] of directions) {
+                // 1. S at start
+                if (letter === 'S') {
+                    let r1 = r + dr1, c1 = c + dc1;
+                    let r2 = r + dr1*2, c2 = c + dc1*2;
+                    if (isValid(r1, c1) && isValid(r2, c2)) {
+                        if (board[r1][c1] === 'O' && board[r2][c2] === 'S') {
+                            found.push([[r, c], [r1, c1], [r2, c2]]);
+                        }
+                    }
+                    // 2. S at end
+                    r1 = r + dr2, c1 = c + dc2;
+                    r2 = r + dr2*2, c2 = c + dc2*2;
+                    if (isValid(r1, c1) && isValid(r2, c2)) {
+                        if (board[r1][c1] === 'O' && board[r2][c2] === 'S') {
+                            found.push([[r2, c2], [r1, c1], [r, c]]);
+                        }
+                    }
+                }
+                // 3. O in middle
+                if (letter === 'O') {
+                    let r1 = r + dr1, c1 = c + dc1;
+                    let r2 = r + dr2, c2 = c + dc2;
+                    if (isValid(r1, c1) && isValid(r2, c2)) {
+                        if (board[r1][c1] === 'S' && board[r2][c2] === 'S') {
+                            found.push([[r1, c1], [r, c], [r2, c2]]);
+                        }
+                    }
+                }
+            }
+            // Only add new SOSes (avoid duplicates)
+            return found.filter(sos =>
+                !winnerCells.some(existing =>
+                    existing.cells.every(([er, ec], i) => er === sos[i][0] && ec === sos[i][1])
+                )
+            );
+        }
+
+        function isValid(r, c) {
+            return r >= 0 && r < ROWS && c >= 0 && c < COLS;
+        }
+
+        function showFinalResult() {
+            if (scores.S > scores.O) {
+                messageEl.textContent = `${playerNames.S} wins!`;
+                messageEl.style.color = "#d7263d";
+            } else if (scores.O > scores.S) {
+                messageEl.textContent = `${playerNames.O} wins!`;
+                messageEl.style.color = "#2563eb";
+            } else {
+                messageEl.textContent = "It's a draw!";
+                messageEl.style.color = "#2d3a4b";
+            }
+        }
+
+        restartBtn.addEventListener('click', () => {
+            showNameModal();
+        });
+
+        // Dismiss modal if background is clicked (optional)
+        modalBg.addEventListener('click', (e) => {
+            if (e.target === modalBg) hideModal();
+        });
+
+        // Name modal logic
+        function showNameModal() {
+            nameModalBg.classList.add('active');
+            playerSNameInput.value = playerNames?.S || '';
+            playerONameInput.value = playerNames?.O || '';
+            playerSNameInput.focus();
+        }
+        function hideNameModal() {
+            nameModalBg.classList.remove('active');
+        }
+        startGameBtn.onclick = () => {
+            let sName = playerSNameInput.value.trim() || 'Player 1';
+            let oName = playerONameInput.value.trim() || 'Player 2';
+            playerNames = {S: sName, O: oName};
+            hideNameModal();
+            initGame();
+        };
+
+        // Show name modal on first load
+        window.onload = showNameModal;
+    </script>
+</body>
+</html>
