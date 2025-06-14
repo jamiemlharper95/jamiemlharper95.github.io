@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas | CS Toolkit</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+    <style>
+        :root {
+            --fill-available: -webkit-fill-available;
+            --atlas-font: "Open Sans", Helvetica, Arial, sans-serif;
+            --atlas-primary: #2B2438;
+            --atlas-secondary: #6BC4E8;
+            --atlas-accent: #89dc65;
+            --atlas-bg: #F4F4F4;
+            --atlas-card: #fff;
+            --atlas-border: #ddd;
+            --atlas-success: #4B9646;
+            --atlas-warning: #DC7D28;
+            --atlas-error: #CB1730;
+            --atlas-info: #1847BF;
+        }
+        h2 {
+            margin-top: 0px;
+        }
+        body {
+            margin: 0;
+            font-family: var(--atlas-font);
+            background: var(--atlas-bg);
+        }
+        .header {
+            background: linear-gradient(90deg, var(--atlas-secondary) 20%, var(--atlas-primary) 100%);
+            padding: 0 40px;
+            box-shadow: 0 2px 8px rgba(43, 36, 56, 0.08);
+            display: flex;
+            align-items: center;
+            min-height: 80px;
+        }
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            height: 80px;
+        }
+        .brand-icon {
+            font-size: 3em;
+            margin-top: -10px;
+            display: block;
+        }
+        .brand-title {
+            font-size: 2em;
+            color: var(--atlas-primary);
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        .brand-subtitle {
+            font-size: 1em;
+            color: #333;
+            margin: 0;
+            font-weight: normal;
+            opacity: 0.7;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+        .container {
+            display: flex;
+            min-height: 80vh;
+        }
+        .sidebar {
+            background: #fff;
+            min-width: 200px;
+            padding: 30px;
+            border-right: 1px solid var(--atlas-border);
+        }
+        .sidebar h2 {
+            font-size: 1.1em;
+            color: var(--atlas-primary);
+            margin-top: 0;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar li {
+            margin: 10px 0;
+        }
+        .sidebar a {
+            color: var(--atlas-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .sidebar a.active,
+        .sidebar a:hover {
+            color: var(--atlas-info);
+            font-weight: bold;
+        }
+        #settings-btn {
+            margin-top: 40px;
+            width: var(--fill-available);
+            background: var(--atlas-primary);
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        #settings-btn:hover,
+        #settings-btn:focus {
+            background: var(--atlas-secondary);
+            color: #fff;
+        }
+        .content {
+            flex: 1;
+            padding: 30px;
+            background-color: var(--atlas-bg);
+        }
+        .content h1, .content h2, .content h3 {
+            color: var(--atlas-primary);
+        }
+        .content p, ul {
+            color: var(--atlas-primary);
+        }
+        .case-list {
+            margin-top: 20px;
+        }
+        .case-card {
+            background: var(--atlas-card);
+            border-radius: 5px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+            padding: 18px 18px 12px 18px;
+            margin-bottom: 18px;
+            position: relative;
+            transition: box-shadow 0.2s;
+        }
+        .case-card[draggable="true"] {
+            cursor: move;
+        }
+        .case-card:hover {
+            box-shadow: 0 2px 8px rgba(43, 36, 56, 0.13);
+        }
+        .case-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--atlas-primary);
+        }
+        .case-meta {
+            font-size: 0.95em;
+            color: #555;
+            margin-bottom: 7px;
+        }
+        .case-actions {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            display: flex;
+            gap: 8px;
+        }
+        .case-actions button {
+            background: var(--atlas-secondary);
+            color: var(--atlas-primary);
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.2s, color 0.2s;
+        }
+        .case-actions button:hover {
+            background: var(--atlas-primary);
+            color: #fff;
+        }
+        .add-case-btn {
+            background: var(--atlas-accent);
+            color: var(--atlas-primary);
+            border: none;
+            border-radius: 5px;
+            padding: 10px 18px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 18px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .add-case-btn:hover {
+            background: var(--atlas-success);
+            color: #fff;
+        }
+        .case-form-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: var(--fill-available);
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            padding: 20px;
+        }
+        .case-form-content {
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px 28px 18px 28px;
+            max-width: 400px;
+            margin: 100px auto;
+            position: relative;
+        }
+        .case-form-content h3 {
+            margin-top: 0;
+        }
+        .case-form-content label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            color: var(--atlas-primary);
+        }
+        .case-form-content input,
+        .case-form-content textarea,
+        .case-form-content select {
+            width: var(--fill-available);
+            padding: 8px;
+            margin-top: 4px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+            font-family: var(--atlas-font);
+        }
+        .case-form-content textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        .case-form-actions {
+            margin-top: 18px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .case-form-actions button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .save-btn {
+            background: var(--atlas-accent);
+            color: var(--atlas-primary);
+            font-weight: bold;
+        }
+        .save-btn:hover {
+            background: var(--atlas-success);
+            color: #fff;
+        }
+        .cancel-btn {
+            background: var(--atlas-secondary);
+            color: var(--atlas-primary);
+        }
+        .cancel-btn:hover {
+            background: var(--atlas-primary);
+            color: #fff;
+        }
+        .footer {
+            background-color: var(--atlas-primary);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+            bottom: 0;
+            width: var(--fill-available);
+        }
+        .file-actions {
+            margin-bottom: 18px;
+            display: flex;
+            gap: 10px;
+        }
+        .file-actions button, .file-actions label {
+            background: var(--atlas-secondary);
+            color: var(--atlas-primary);
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .file-actions button:hover, .file-actions label:hover {
+            background: var(--atlas-primary);
+            color: #fff;
+        }
+        .file-actions input[type="file"] {
+            display: none;
+        }
+        .callout {
+            border-left: 5px solid var(--atlas-info);
+            background: #eaf1fb;
+            padding: 12px 18px;
+            border-radius: 3px;
+            color: var(--atlas-primary);
+            margin-bottom: 18px;
+        }
+        .dashboard-callout {
+            font-size: 1.1em;
+        }
+        .dashboard-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            margin-top: 32px;
+        }
+        .dashboard-feature-card {
+            flex: 1 1 260px;
+            min-width: 260px;
+            max-width: 340px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(43,36,56,0.08);
+            padding: 22px;
+        }
+        .dashboard-quick-tips {
+            margin-top: 40px;
+        }
+        .add-template-btn {
+            background: var(--atlas-accent);
+            color: var(--atlas-primary);
+        }
+        .template-content-preview {
+            background: #f7f7fb;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 6px;
+        }
+        .timer-blocks {
+            justify-content: flex-start;
+        }
+        .timer-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(43,36,56,0.08);
+            padding: 22px 28px 18px 28px;
+            min-width: 260px;
+            margin-bottom: 20px;
+            flex: 1 1 260px;
+        }
+        .stopwatch {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 2.2em;
+            color: var(--atlas-primary);
+            background: #f7f7fb;
+            border-radius: 8px;
+            padding: 12px 0;
+            text-align: center;
+            margin-bottom: 8px;
+            letter-spacing: 2px;
+            border: 1px solid #e0e0e0;
+        }
+        .timer-card .timer-btn {
+            min-width: 125px;
+            margin-right: 8px;
+            margin-bottom: 4px;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 0;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(43,36,56,0.07);
+            transition: background 0.2s, color 0.2s, transform 0.1s;
+            outline: none;
+        }
+        .timer-card .start-btn {
+            background: var(--atlas-accent);
+            color: var(--atlas-primary);
+        }
+        .timer-card .end-btn {
+            background: var(--atlas-error);
+            color: #fff;
+        }
+        .timer-card .reset-btn {
+            background: var(--atlas-secondary);
+            color: var(--atlas-primary);
+        }
+        .timer-card .timer-btn:active {
+            transform: scale(0.97);
+        }
+        .timer-card .timer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .timer-card .timer-btn:hover:not(:disabled), 
+        .timer-card .timer-btn:focus:not(:disabled) {
+            background: var(--atlas-primary);
+            color: #fff;
+        }
+        .timer-meta {
+            font-size: 0.98em;
+            color: #555;
+            margin-top: 8px;
+        }
+        /* Email Templates Styles */
+        .email-template {
+            position: relative;
+            font-family: var(--atlas-font);
+            font-size: 11px;
+            background: #FFFFFF;
+            padding: 20px 20px 20px 20px;
+            border-radius: 5px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .email-template-toolbar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .email-content, .email-content ul {
+            color: #000000;
+        }
+        .email-template .email-content {
+            font-size: 1.15em;
+            font-family: var(--atlas-font);
+            color: #222;
+            line-height: 1.7;
+        }
+        .email-template-label {
+            font-weight: bold;
+            color: var(--atlas-primary);
+            font-size: 1.5em;
+            margin-bottom: 6px;
+        }
+        .copy-btn {
+            background: var(--atlas-accent);
+            color: var(--atlas-primary);
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 1.25em;
+            transition: background 0.2s, color 0.2s;
+        }
+        .copy-btn:hover {
+            background: var(--atlas-success);
+            color: #fff;
+        }
+        .copy-feedback {
+            display: none;
+            color: var(--atlas-success);
+            font-weight: bold;
+            font-size: 0.95em;
+            margin-left: 6px;
+            transition: opacity 0.2s;
+        }
+        .email-template.copied .copy-feedback {
+            display: inline;
+            opacity: 1;
+        }
+        .info-btn {
+            background: var(--atlas-secondary);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 1.25em;
+            transition: background 0.2s;
+        }
+        .info-btn:hover {
+            background: var(--atlas-primary);
+        }
+        .template-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: var(--fill-available);
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            padding: 20px;
+        }
+        .template-modal-content {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 500px;
+            margin: 100px auto;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 17.5px;
+            cursor: pointer;
+            font-size: 2em;
+            color: var(--atlas-error);
+        }
+        /* Settings Modal */
+        #settings-modal .case-form-content button {
+            margin-bottom: 10px;
+            min-width: 120px;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            outline: none;
+            display: block;
+        }
+        #settings-modal .case-form-content #clear-data-btn {
+            background: var(--atlas-error);
+            color: #fff;
+        }
+        #settings-modal .case-form-content #close-settings-btn {
+            background: var(--atlas-secondary);
+            color: var(--atlas-primary);
+        }
+        #settings-modal .case-form-content button:hover,
+        #settings-modal .case-form-content button:focus {
+            background: var(--atlas-primary) !important;
+            color: #fff !important;
+        }
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                min-width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--atlas-border);
+            }
+            .content {
+                padding: 20px 10px;
+            }
+        }
+        /* --- Custom Styles for New Sections --- */
+        .faq-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .faq-callout {
+            background: var(--atlas-secondary);
+            color: var(--atlas-primary);
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-weight: bold;
+        }
+        .faq-list {
+            list-style: none;
+            padding: 0;
+        }
+        .faq-item {
+            margin-bottom: 12px;
+        }
+        .faq-q {
+            font-weight: bold;
+            color: var(--atlas-primary);
+        }
+        .faq-a {
+            margin-left: 10px;
+            color: var(--atlas-primary);
+        }
+        .about-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .about-hero {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .about-icon {
+            font-size: 2.5em;
+            color: var(--atlas-primary);
+        }
+        .about-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .about-list li {
+            margin-bottom: 10px;
+            color: var(--atlas-primary);
+        }
+        .about-footer {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--atlas-border);
+            text-align: center;
+        }
+        #template-search {
+            width: var(--fill-available);
+            max-width: var(--fill-available);
+            padding: 10px 14px;
+            margin: 18px 0 10px 0;
+            border: 1.5px solid var(--atlas-primary);
+            border-radius: 6px;
+            font-size: 1.08em;
+            font-family: var(--atlas-font);
+            background: #fff;
+            color: var(--atlas-primary);
+            box-shadow: 0 1px 4px rgba(43,36,56,0.06);
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        #template-search:focus {
+            border: 1.5px solid var(--atlas-info);
+            outline: none;
+            box-shadow: 0 2px 8px rgba(43,36,56,0.13);
+        }
+        .delete-template-btn {
+            background: var(--atlas-error);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 1.25em;
+            transition: background 0.2s, color 0.2s;
+        }
+        .delete-template-btn:hover,
+        .email-template-toolbar .delete-template-btn:focus {
+            background: #a00;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="brand-box">
+            <span class="brand-icon">🧭</span>
+            <div>
+                <div class="brand-title">ATLAS</div>
+                <div class="brand-subtitle">CS TOOLKIT</div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <nav class="sidebar">
+            <h2>Main Menu</h2>
+            <ul>
+                <li><a href="#dashboard" class="active">Dashboard</a></li>
+                <li><a href="#cases">Case Manager</a></li>
+                <li><a href="#timers">Break Timers</a></li>
+                <li><a href="#emails">Email Templates</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+            <button id="settings-btn">
+                ⚙️ Settings
+            </button>
+        </nav>
+        <main class="content">
+            <!-- DASHBOARD HOME -->
+            <section id="view-dashboard">
+                <h1>Welcome to Atlas Toolkit</h1>
+                <div class="callout dashboard-callout">
+                    <b>Atlas Toolkit</b> is your all-in-one tool for case management, time tracking, and professional email templates.<br>
+                    Use the menu on the left to access each feature.
+                </div>
+                <div class="dashboard-features">
+                    <!-- Case Manager Overview -->
+                    <div class="dashboard-feature-card">
+                        <h3 style="margin-top:0;color:var(--atlas-primary);">Case Manager</h3>
+                        <ul>
+                            <li>Add, edit, and delete open cases</li>
+                            <li>Track status and type</li>
+                            <li>Save/load your work as a file</li>
+                        </ul>
+                        <a href="#cases" style="color:var(--atlas-info);font-weight:bold;text-decoration:none;">Go to Case Manager &rarr;</a>
+                    </div>
+                    <!-- Timers Overview -->
+                    <div class="dashboard-feature-card">
+                        <h3 style="margin-top:0;color:var(--atlas-primary);">Break & Lunch Timers</h3>
+                        <ul>
+                            <li>Track your break and lunch times</li>
+                            <li>See how many breaks you've taken</li>
+                            <li>Simple, privacy-friendly stopwatch</li>
+                        </ul>
+                        <a href="#timers" style="color:var(--atlas-info);font-weight:bold;text-decoration:none;">Go to Timers &rarr;</a>
+                    </div>
+                    <!-- Email Templates Overview -->
+                    <div class="dashboard-feature-card">
+                        <h3 style="margin-top:0;color:var(--atlas-primary);">Email Templates</h3>
+                        <ul>
+                            <li>Search for common response templates</li>
+                            <li>Copy to clipboard with one click</li>
+                            <li>See usage tips for each template</li>
+                        </ul>
+                        <a href="#emails" style="color:var(--atlas-info);font-weight:bold;text-decoration:none;">Go to Email Templates &rarr;</a>
+                    </div>
+                </div>
+                <div class="dashboard-quick-tips">
+                    <b>Quick Tips:</b>
+                    <ul>
+                        <li>Your data is stored only in your browser for privacy.</li>
+                        <li>Use the <b>Settings</b> button to clear all data if needed.</li>
+                        <li>Check the <a href="#faq" style="color:var(--atlas-info);font-weight:bold;">FAQ</a> for more help.</li>
+                    </ul>
+                </div>
+            </section>
+            <!-- CASE MANAGER -->
+            <section id="view-cases" style="display:none;">
+                <h2>Case Manager</h2>
+                <div class="callout warning">
+                    All information is stored locally in your browser. Use the "Save Work File" option to export your cases.
+                </div>
+                <button class="add-case-btn" id="add-case-btn">+ Add New Case</button>
+                <div class="case-list" id="case-list"></div>
+            </section>
+            <!-- TIMERS -->
+            <section id="view-timers" style="display:none;">
+                <h2>Break Timers</h2>
+                <div class="callout">
+                    Use these tools to track your break and lunch times. Click "Start" to begin, and "End" when you return. The timer will count up while active.
+                </div>
+                <div class="timer-blocks" style="display:flex;gap:40px;flex-wrap:wrap;">
+                    <!-- Break Timer -->
+                    <div class="timer-card">
+                        <h3>Break</h3>
+                        <div class="stopwatch" id="break-stopwatch">00:00:00</div>
+                        <div style="margin:10px 0;">
+                            <button id="start-break-btn" class="timer-btn start-btn">Start Break</button>
+                            <button id="end-break-btn" class="timer-btn end-btn" disabled>End Break</button>
+                            <button id="reset-break-btn" class="timer-btn reset-btn" disabled>Reset</button>
+                        </div>
+                        <div class="timer-meta">
+                            <b>Started:</b> <span id="break-start">—</span><br>
+                            <b>Ended:</b> <span id="break-end">—</span><br>
+                            <b>Breaks Taken:</b> <span id="break-count">0</span>
+                        </div>
+                    </div>
+                    <!-- Lunch Timer -->
+                    <div class="timer-card">
+                        <h3>Lunch</h3>
+                        <div class="stopwatch" id="lunch-stopwatch">00:00:00</div>
+                        <div style="margin:10px 0;">
+                            <button id="start-lunch-btn" class="timer-btn start-btn">Start Lunch</button>
+                            <button id="end-lunch-btn" class="timer-btn end-btn" disabled>End Lunch</button>
+                            <button id="reset-lunch-btn" class="timer-btn reset-btn" disabled>Reset</button>
+                        </div>
+                        <div class="timer-meta">
+                            <b>Started:</b> <span id="lunch-start">—</span><br>
+                            <b>Ended:</b> <span id="lunch-end">—</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- EMAIL TEMPLATES -->
+            <section id="view-emails" style="display:none;">
+                <h2>Search Email Templates</h2>
+                <div class="file-actions" id="email-file-actions">
+                    <button id="add-template-btn" class="add-template-btn">+ Add Template</button>
+                </div>
+                <input type="text" id="template-search" placeholder="Search keyword..." autocomplete="off">
+                <div id="template-list"></div>
+                <br><hr>
+            </section>
+            <!-- FAQ -->
+            <section id="view-faq" style="display:none;">
+                <h2><span style="font-size:1.2em;">❓</span> Frequently Asked Questions</h2>
+                <div class="faq-container">
+                    <div class="faq-callout">
+                        <b>Atlas is here to help!</b> Find answers to common questions below.
+                    </div>
+                    <div class="faq-list">
+                        <div class="faq-item">
+                            <div class="faq-q"><span>Q:</span> What is Atlas?</div>
+                            <div class="faq-a"><span>A:</span> Atlas is a browser-based toolkit designed to streamline Customer Service Advisor tasks, including case management, time tracking, and email templates—all in one place.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-q"><span>Q:</span> Where is my data stored?</div>
+                            <div class="faq-a"><span>A:</span> All your data stays private and is stored only in your browser. Nothing is sent to any server.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-q"><span>Q:</span> Can I use Atlas on multiple devices?</div>
+                            <div class="faq-a"><span>A:</span> Yes! Use <b>Export All Data</b> in Settings to save your work, and <b>Import All Data</b> to load it elsewhere.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-q"><span>Q:</span> What happens if I clear my browser data?</div>
+                            <div class="faq-a"><span>A:</span> If you clear your browser storage, your Atlas data will be lost. Always export your data before clearing your browser.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-q"><span>Q:</span> How do the break and lunch timers work?</div>
+                            <div class="faq-a"><span>A:</span> Timers help you track your breaks and lunches for personal awareness. No timer data is shared or reported.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-q"><span>Q:</span> How do I use and manage email templates?</div>
+                            <div class="faq-a"><span>A:</span> Search for templates, copy them with one click, or add your own. Click ℹ️ for usage tips or ✏️ to edit.</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-q"><span>Q:</span> Is Atlas secure?</div>
+                            <div class="faq-a"><span>A:</span> Yes. Atlas never sends your data anywhere. All features run locally in your browser for maximum privacy.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- ABOUT -->
+            <section id="view-about" style="display:none;">
+                <h2><span style="font-size:1.2em;">🌟</span> About Atlas Toolkit</h2>
+                <div class="about-container">
+                    <div class="about-hero">
+                        <span class="about-icon">🧭</span>
+                        <div>
+                            <b>Atlas Toolkit</b> is a modern, privacy-first web app for Customer Service Advisors.<br>
+                            <span style="color:var(--atlas-info);font-size:1.1em;">Everything runs in your browser—no sign-up, no tracking, no hassle.</span>
+                        </div>
+                    </div>
+                    <ul class="about-list">
+                        <li><span>📁</span> Organize and manage your open cases with ease.</li>
+                        <li><span>💾</span> Export and import your work securely between devices.</li>
+                        <li><span>⏱️</span> Track your breaks and lunches with simple, private timers.</li>
+                        <li><span>✉️</span> Create, search, and use professional email templates.</li>
+                        <li><span>🔒</span> All data stays on your device for complete privacy.</li>
+                    </ul>
+                    <div class="about-footer">
+                        <span style="font-size:0.95em;">Atlas is built to empower Customer Service teams and individuals—no IT setup required.</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="footer">
+        <p>
+            &copy; 2025 Atlas Toolkit | All rights reserved.
+        </p>
+    </div>
+    <!-- Modal for Add/Edit Case -->
+    <div class="case-form-modal" id="case-form-modal">
+        <form class="case-form-content" id="case-form">
+            <h3 id="case-form-title">Add New Case</h3>
+            <input type="hidden" id="case-id">
+            <label for="case-title">Title</label>
+            <input type="text" id="case-title" required maxlength="100">
+            <label for="case-type">Type</label>
+            <input type="text" id="case-type" maxlength="50">
+            <label for="case-status">Status</label>
+            <select id="case-status" required>
+                <option value="Pending">Pending</option>
+                <option value="Awaiting External Reply">Awaiting External Reply</option>
+                <option value="Awaiting Internal Reply">Awaiting Internal Reply</option>
+                <option value="On Hold">On Hold</option>
+                <option value="Closed">Closed</option>
+            </select>
+            <label for="case-notes">Notes</label>
+            <textarea id="case-notes" maxlength="500"></textarea>
+            <div class="case-form-actions">
+                <button type="submit" class="save-btn">Save</button>
+                <button type="button" class="cancel-btn" id="cancel-case-btn">Cancel</button>
+            </div>
+        </form>
+    </div>
+    <!-- Modal for Settings -->
+    <div class="case-form-modal" id="settings-modal" style="display:none;">
+        <div class="case-form-content" style="max-width:350px;">
+            <h3>Settings</h3>
+            <label for="template-font">Template Font</label>
+            <select id="template-font" style="width:100%;margin-bottom:10px;">
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="'Calibri', sans-serif">Calibri</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="'Open Sans', Helvetica, Arial, sans-serif">Open Sans</option>
+            </select>
+            <label for="template-font-size">Font Size</label>
+            <select id="template-font-size" style="width:100%;margin-bottom:18px;">
+                <option value="11pt">11pt</option>
+                <option value="12pt">12pt</option>
+                <option value="13pt">13pt</option>
+                <option value="14pt">14pt</option>
+                <option value="16pt">16pt</option>
+            </select>
+            <label style="margin-top:18px;font-weight:bold;">Backup & Restore</label>
+            <button id="save-workfile-btn" style="width:var(--fill-available);background:var(--atlas-secondary);color:var(--atlas-primary);font-weight:bold;border:none;border-radius:6px;padding:12px;cursor:pointer;margin-bottom:10px;">
+                💾 Export All Data
+            </button>
+            <label for="load-workfile-input" style="width:var(--fill-available);text-align:center;background:var(--atlas-secondary);color:var(--atlas-primary);font-weight:bold;border:none;border-radius:6px;padding:12px;cursor:pointer;display:block;margin-bottom:10px;">
+                📂 Import All Data
+                <input type="file" id="load-workfile-input" accept=".work.file,application/json" style="display:none;">
+            </label>
+            <button id="clear-data-btn" style="width:var(--fill-available);background:var(--atlas-error);color:#fff;font-weight:bold;border:none;border-radius:6px;padding:12px;cursor:pointer;margin-bottom:10px;">
+                🗑️ Clear All Data
+            </button>
+            <button id="close-settings-btn" class="cancel-btn" style="width:var(--fill-available);">Close</button>
+        </div>
+    </div>
+    <!-- Modal for Add/Edit Template -->
+    <div class="case-form-modal" id="template-modal" style="display:none;">
+        <form class="case-form-content" id="template-form" style="max-width:420px;">
+            <h3 id="template-form-title">Add Email Template</h3>
+            <label for="template-label">Label</label>
+            <input type="text" id="template-label" required maxlength="100">
+            <label for="template-keywords">Keywords</label>
+            <input type="text" id="template-keywords" maxlength="200">
+            <label for="template-content">Content (HTML allowed)</label>
+            <textarea id="template-content" required maxlength="2000" style="min-height:80px;"></textarea>
+            <label for="template-info">Usage Info</label>
+            <textarea id="template-info" maxlength="1000" style="min-height:60px;"></textarea>
+            <div class="case-form-actions">
+                <button type="submit" class="save-btn">Save</button>
+                <button type="button" class="cancel-btn" id="cancel-template-btn">Cancel</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        // --- SPA Navigation (Improved) ---
+        function showSectionFromHash() {
+            const hash = window.location.hash || '#dashboard';
+            document.querySelectorAll('main.content > section').forEach(sec => sec.style.display = 'none');
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            const viewId = 'view-' + hash.replace('#', '');
+            const view = document.getElementById(viewId);
+            if (view) view.style.display = '';
+            const link = document.querySelector('.sidebar a[href="' + hash + '"]');
+            if (link) link.classList.add('active');
+        }
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.hash = this.getAttribute('href');
+                showSectionFromHash();
+            });
+        });
+        window.addEventListener('DOMContentLoaded', showSectionFromHash);
+        window.addEventListener('hashchange', showSectionFromHash);
+
+        // --- Modal Elements (Declare Once) ---
+        const caseModal = document.getElementById('case-form-modal');
+        const caseForm = document.getElementById('case-form');
+        const caseFormTitle = document.getElementById('case-form-title');
+        const idInput = document.getElementById('case-id');
+        const titleInput = document.getElementById('case-title');
+        const statusInput = document.getElementById('case-status');
+        const notesInput = document.getElementById('case-notes');
+        const typeInput = document.getElementById('case-type');
+        const cancelCaseBtn = document.getElementById('cancel-case-btn');
+
+        const templateModal = document.getElementById('template-modal');
+        const templateForm = document.getElementById('template-form');
+        const templateFormTitle = document.getElementById('template-form-title');
+        const labelInput = document.getElementById('template-label');
+        const keywordsInput = document.getElementById('template-keywords');
+        const contentInput = document.getElementById('template-content');
+        const infoInput = document.getElementById('template-info');
+        const cancelTemplateBtn = document.getElementById('cancel-template-btn');
+
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsBtn = document.getElementById('settings-btn');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const clearDataBtn = document.getElementById('clear-data-btn');
+
+        // --- Modal Open/Close Logic ---
+        function openCaseModal(editCase) {
+            caseModal.style.display = 'block';
+            if (editCase) {
+                caseFormTitle.textContent = 'Edit Case';
+                idInput.value = editCase.id;
+                titleInput.value = editCase.title;
+                statusInput.value = editCase.status;
+                typeInput.value = editCase.type || '';
+                notesInput.value = editCase.notes || '';
+            } else {
+                caseFormTitle.textContent = 'Add New Case';
+                idInput.value = '';
+                titleInput.value = '';
+                statusInput.value = 'Pending';
+                typeInput.value = '';
+                notesInput.value = '';
+            }
+            titleInput.focus();
+        }
+        function closeCaseModal() {
+            caseModal.style.display = 'none';
+            caseForm.reset();
+        }
+        function openTemplateModal(editTemplate) {
+            templateModal.style.display = 'block';
+            templateForm.reset();
+            if (editTemplate) {
+                templateFormTitle.textContent = 'Edit Email Template';
+                labelInput.value = editTemplate.label;
+                keywordsInput.value = editTemplate.keywords;
+                contentInput.value = editTemplate.content;
+                infoInput.value = editTemplate.info;
+                templateForm.idx = editTemplate.idx;
+            } else {
+                templateFormTitle.textContent = 'Add Email Template';
+                templateForm.idx = undefined;
+            }
+            labelInput.focus();
+        }
+        function closeTemplateModal() {
+            templateModal.style.display = 'none';
+            templateForm.reset();
+        }
+        function openSettingsModal() {
+            settingsModal.style.display = 'block';
+        }
+        function closeSettingsModal() {
+            settingsModal.style.display = 'none';
+        }
+        window.addEventListener('mousedown', function(e) {
+            if (caseModal.style.display === 'block' && e.target === caseModal) closeCaseModal();
+            if (templateModal.style.display === 'block' && e.target === templateModal) closeTemplateModal();
+            if (settingsModal.style.display === 'block' && e.target === settingsModal) closeSettingsModal();
+            document.querySelectorAll('.template-modal').forEach(modalEl => {
+                if (modalEl.style.display === 'block' && e.target === modalEl) {
+                    modalEl.style.display = 'none';
+                }
+            });
+        });
+        document.getElementById('add-case-btn').onclick = () => openCaseModal();
+        cancelCaseBtn.onclick = closeCaseModal;
+        document.getElementById('add-template-btn').onclick = () => openTemplateModal();
+        cancelTemplateBtn.onclick = closeTemplateModal;
+        settingsBtn.onclick = openSettingsModal;
+        closeSettingsBtn.onclick = closeSettingsModal;
+        clearDataBtn.onclick = function() {
+            if (confirm('Are you sure you want to clear all saved cases, break counts, and template data for this page? This cannot be undone.')) {
+                localStorage.removeItem('aqa_atlas_cases');
+                localStorage.removeItem('aqa_atlas_break_count');
+                localStorage.removeItem('aqa_atlas_templates');
+                localStorage.removeItem('aqa_atlas_template_font');
+                localStorage.removeItem('aqa_atlas_template_font_size');
+                location.reload();
+            }
+        };
+
+        // --- CASE MANAGER LOGIC ---
+        const caseListEl = document.getElementById('case-list');
+        let cases = JSON.parse(localStorage.getItem('aqa_atlas_cases') || '[]');
+
+        function saveCases() {
+            localStorage.setItem('aqa_atlas_cases', JSON.stringify(cases));
+        }
+        function renderCases() {
+            caseListEl.innerHTML = '';
+            if (!cases.length) {
+                caseListEl.innerHTML = '<div style="color:#888;">No cases yet. Click "Add New Case" to get started.</div>';
+                return;
+            }
+            cases.forEach((cs, idx) => {
+                const card = document.createElement('div');
+                card.className = 'case-card';
+                card.setAttribute('draggable', 'true');
+                card.setAttribute('data-idx', idx);
+                card.innerHTML = `
+                    <div class="case-title">${cs.title}</div>
+                    <div class="case-meta">
+                        <b>Type:</b> ${cs.type || '—'}<br>
+                        <b>Status:</b> ${cs.status}<br>
+                        <b>Notes:</b> ${cs.notes ? cs.notes.replace(/\n/g, '<br>') : '—'}
+                    </div>
+                    <div class="case-actions">
+                        <button title="Edit" onclick="editCase('${cs.id}')">✏️</button>
+                        <button title="Delete" onclick="deleteCase('${cs.id}')">🗑️</button>
+                    </div>
+                `;
+                // Drag events
+                card.ondragstart = e => {
+                    e.dataTransfer.setData('text/plain', idx);
+                    card.style.opacity = '0.5';
+                };
+                card.ondragend = e => {
+                    card.style.opacity = '';
+                };
+                card.ondragover = e => {
+                    e.preventDefault();
+                    card.style.border = '2px dashed var(--atlas-primary)';
+                };
+                card.ondragleave = e => {
+                    card.style.border = '';
+                };
+                card.ondrop = e => {
+                    e.preventDefault();
+                    card.style.border = '';
+                    const fromIdx = parseInt(e.dataTransfer.getData('text/plain'));
+                    const toIdx = idx;
+                    if (fromIdx !== toIdx) {
+                        const moved = cases.splice(fromIdx, 1)[0];
+                        cases.splice(toIdx, 0, moved);
+                        saveCases();
+                        renderCases();
+                    }
+                };
+                caseListEl.appendChild(card);
+            });
+        }
+        function editCase(id) {
+            const cs = cases.find(c => c.id === id);
+            if (cs) openCaseModal(cs);
+        }
+        function deleteCase(id) {
+            if (confirm('Delete this case?')) {
+                cases = cases.filter(c => c.id !== id);
+                saveCases();
+                renderCases();
+            }
+        }
+        caseForm.onsubmit = function(e) {
+            e.preventDefault();
+            const id = idInput.value || Date.now().toString();
+            const obj = {
+                id,
+                title: titleInput.value.trim(),
+                type: typeInput.value.trim(),
+                status: statusInput.value,
+                notes: notesInput.value.trim()
+            };
+            const idx = cases.findIndex(c => c.id === id);
+            if (idx > -1) cases[idx] = obj;
+            else cases.push(obj);
+            saveCases();
+            closeCaseModal();
+            renderCases();
+        };
+        window.editCase = editCase;
+        window.deleteCase = deleteCase;
+        renderCases();
+
+        // --- BREAK/LUNCH TIMER LOGIC ---
+        function pad(n) { return n < 10 ? '0' + n : n; }
+        function formatTime(ms) {
+            const s = Math.floor(ms / 1000);
+            return pad(Math.floor(s / 3600)) + ':' + pad(Math.floor((s % 3600) / 60)) + ':' + pad(s % 60);
+        }
+        function Timer(prefix) {
+            this.prefix = prefix;
+            this.startBtn = document.getElementById('start-' + prefix + '-btn');
+            this.endBtn = document.getElementById('end-' + prefix + '-btn');
+            this.resetBtn = document.getElementById('reset-' + prefix + '-btn');
+            this.stopwatch = document.getElementById(prefix + '-stopwatch');
+            this.startEl = document.getElementById(prefix + '-start');
+            this.endEl = document.getElementById(prefix + '-end');
+            this.countEl = document.getElementById(prefix + '-count');
+            this.timer = null;
+            this.startTime = null;
+            this.elapsed = 0;
+            this.count = parseInt(localStorage.getItem('aqa_atlas_' + prefix + '_count') || '0');
+            if (this.countEl) this.countEl.textContent = this.count;
+            this.updateDisplay = () => {
+                this.stopwatch.textContent = formatTime(this.elapsed + (this.startTime ? Date.now() - this.startTime : 0));
+            };
+            this.start = () => {
+                if (this.timer) return;
+                this.startTime = Date.now();
+                this.startEl.textContent = new Date().toLocaleTimeString();
+                this.timer = setInterval(this.updateDisplay, 500);
+                this.startBtn.disabled = true;
+                this.endBtn.disabled = false;
+                this.resetBtn.disabled = true;
+            };
+            this.end = () => {
+                if (!this.timer) return;
+                clearInterval(this.timer);
+                this.timer = null;
+                this.elapsed += Date.now() - this.startTime;
+                this.startTime = null;
+                this.endEl.textContent = new Date().toLocaleTimeString();
+                if (this.countEl) {
+                    this.count++;
+                    this.countEl.textContent = this.count;
+                    localStorage.setItem('aqa_atlas_' + prefix + '_count', this.count);
+                }
+                this.startBtn.disabled = false;
+                this.endBtn.disabled = true;
+                this.resetBtn.disabled = false;
+            };
+            this.reset = () => {
+                if (this.timer) clearInterval(this.timer);
+                this.timer = null;
+                this.startTime = null;
+                this.elapsed = 0;
+                this.stopwatch.textContent = '00:00:00';
+                this.startEl.textContent = '—';
+                this.endEl.textContent = '—';
+                this.startBtn.disabled = false;
+                this.endBtn.disabled = true;
+                this.resetBtn.disabled = true;
+            };
+            this.startBtn && (this.startBtn.onclick = this.start);
+            this.endBtn && (this.endBtn.onclick = this.end);
+            this.resetBtn && (this.resetBtn.onclick = this.reset);
+            this.reset();
+        }
+        new Timer('break');
+        new Timer('lunch');
+
+        // --- EMAIL TEMPLATE LOGIC ---
+        const templateListEl = document.getElementById('template-list');
+        const templateSearch = document.getElementById('template-search');
+        let templates = JSON.parse(localStorage.getItem('aqa_atlas_templates') || '[]');
+        let filteredTemplates = [];
+
+        function saveTemplates() {
+            localStorage.setItem('aqa_atlas_templates', JSON.stringify(templates));
+        }
+        function renderTemplates() {
+            let q = (templateSearch.value || '').toLowerCase();
+            filteredTemplates = templates
+                .map((tpl, i) => ({ ...tpl, _originalIdx: i }))
+                .filter(t =>
+                    t.label.toLowerCase().includes(q) ||
+                    t.keywords.toLowerCase().includes(q) ||
+                    t.content.toLowerCase().includes(q)
+                );
+            templateListEl.innerHTML = '';
+            if (!filteredTemplates.length) {
+                templateListEl.innerHTML = '<div style="color:#888;">No templates found.</div>';
+                return;
+            }
+            filteredTemplates.forEach((tpl, idx) => {
+                const div = document.createElement('div');
+                div.className = 'email-template';
+                div.innerHTML = `
+                    <div class="email-template-toolbar">
+                        <button class="copy-btn" title="Copy" onclick="copyTemplate(${idx})">📋</button>
+                        <button class="info-btn" title="Info" onclick="showTemplateInfo(${idx})">ℹ️</button>
+                        <button class="copy-btn" title="Edit" onclick="editTemplate(${idx})">✏️</button>
+                        <button class="delete-template-btn" title="Delete" onclick="deleteTemplate(${idx})">🗑️</button>
+                        <span class="copy-feedback" id="copy-feedback-${idx}">Copied!</span>
+                    </div>
+                    <div class="email-template-label" style="font-weight:bold;color:var(--atlas-primary);font-size:1.5em;margin-bottom:6px;">
+                        ${tpl.label}
+                    </div>
+                    <div class="email-content" style="font-family:${localStorage.getItem('aqa_atlas_template_font')||'Arial, sans-serif'};font-size:${localStorage.getItem('aqa_atlas_template_font_size')||'11pt'};">
+                        ${tpl.content}
+                    </div>
+                `;
+                templateListEl.appendChild(div);
+            });
+        }
+        function copyTemplate(idx) {
+            const tpl = filteredTemplates[idx];
+            if (!tpl) return;
+            // Try Clipboard API for HTML
+            if (navigator.clipboard && window.ClipboardItem) {
+                const blob = new Blob([tpl.content], { type: "text/html" });
+                navigator.clipboard.write([new ClipboardItem({ "text/html": blob })]);
+            } else {
+                // Improved fallback: use a contenteditable div to copy HTML
+                const div = document.createElement('div');
+                div.innerHTML = tpl.content;
+                div.style.position = 'fixed';
+                div.style.pointerEvents = 'none';
+                div.style.opacity = 0;
+                div.contentEditable = 'true';
+                document.body.appendChild(div);
+
+                // Select the content
+                const range = document.createRange();
+                range.selectNodeContents(div);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+
+                // Execute copy command
+                try {
+                    document.execCommand('copy');
+                } catch (e) {
+                    alert('Copy failed. Please copy manually.');
+                }
+
+                // Cleanup
+                sel.removeAllRanges();
+                document.body.removeChild(div);
+            }
+            document.getElementById('copy-feedback-' + idx).style.display = 'inline';
+            setTimeout(() => {
+                document.getElementById('copy-feedback-' + idx).style.display = 'none';
+            }, 1200);
+        }
+        function showTemplateInfo(idx) {
+            const tpl = filteredTemplates[idx];
+            if (!tpl) return;
+            let modal = document.createElement('div');
+            modal.className = 'template-modal';
+            modal.style.display = 'block';
+            modal.innerHTML = `
+                <div class="template-modal-content">
+                    <span class="close-modal" onclick="this.closest('.template-modal').remove()">×</span>
+                    <h3>${tpl.label}</h3>
+                    <div><b>Keywords:</b> ${tpl.keywords}</div>
+                    <div style="margin:10px 0;"><b>Usage Info:</b><br>${tpl.info || '—'}</div>
+                    <div><b>Content Preview:</b><br><div class="template-content-preview">${tpl.content}</div></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.onclick = function(e) {
+                if (e.target === modal) modal.remove();
+            };
+        }
+        function editTemplate(idx) {
+            const tpl = filteredTemplates[idx];
+            if (tpl) openTemplateModal({ ...tpl, idx: tpl._originalIdx });
+        }
+        function deleteTemplate(idx) {
+            const tpl = filteredTemplates[idx];
+            if (tpl && confirm('Delete this template?')) {
+                templates.splice(tpl._originalIdx, 1);
+                saveTemplates();
+                renderTemplates();
+            }
+        }
+        templateForm.onsubmit = function(e) {
+            e.preventDefault();
+            const obj = {
+                label: labelInput.value.trim(),
+                keywords: keywordsInput.value.trim(),
+                content: contentInput.value.trim(),
+                info: infoInput.value.trim()
+            };
+            // Edit or add
+            if (typeof templateForm.idx === 'number' && templateForm.idx >= 0) {
+                templates[templateForm.idx] = obj;
+                templateForm.idx = undefined;
+            } else {
+                templates.push(obj);
+            }
+            saveTemplates();
+            closeTemplateModal();
+            renderTemplates();
+        };
+        function openTemplateModal(editTemplate) {
+            templateModal.style.display = 'block';
+            templateForm.reset();
+            if (editTemplate) {
+                templateFormTitle.textContent = 'Edit Email Template';
+                labelInput.value = editTemplate.label;
+                keywordsInput.value = editTemplate.keywords;
+                contentInput.value = editTemplate.content;
+                infoInput.value = editTemplate.info;
+                templateForm.idx = editTemplate.idx;
+            } else {
+                templateFormTitle.textContent = 'Add Email Template';
+                templateForm.idx = undefined;
+            }
+            labelInput.focus();
+        }
+        window.copyTemplate = copyTemplate;
+        window.showTemplateInfo = showTemplateInfo;
+        window.editTemplate = editTemplate;
+        window.deleteTemplate = deleteTemplate;
+        renderTemplates();
+        templateSearch && templateSearch.addEventListener('input', renderTemplates);
+
+        // --- SETTINGS LOGIC ---
+        const templateFont = document.getElementById('template-font');
+        const templateFontSize = document.getElementById('template-font-size');
+        if (templateFont && templateFontSize) {
+            templateFont.value = localStorage.getItem('aqa_atlas_template_font') || "Arial, sans-serif";
+            templateFontSize.value = localStorage.getItem('aqa_atlas_template_font_size') || "11pt";
+            templateFont.onchange = function() {
+                localStorage.setItem('aqa_atlas_template_font', templateFont.value);
+                renderTemplates();
+            };
+            templateFontSize.onchange = function() {
+                localStorage.setItem('aqa_atlas_template_font_size', templateFontSize.value);
+                renderTemplates();
+            };
+        }
+
+        // --- EXPORT/IMPORT WORK FILE ---
+        const saveWorkfileBtn = document.getElementById('save-workfile-btn');
+        const loadWorkfileInput = document.getElementById('load-workfile-input');
+        if (saveWorkfileBtn) {
+            saveWorkfileBtn.onclick = function() {
+                const data = {
+                    cases,
+                    templates,
+                    break_count: localStorage.getItem('aqa_atlas_break_count') || '0',
+                    template_font: localStorage.getItem('aqa_atlas_template_font') || '',
+                    template_font_size: localStorage.getItem('aqa_atlas_template_font_size') || ''
+                };
+                const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'aqa_atlas.work.file';
+                a.click();
+            };
+        }
+        if (loadWorkfileInput) {
+            loadWorkfileInput.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    try {
+                        const data = JSON.parse(evt.target.result);
+                        if (data.cases) {
+                            cases = data.cases;
+                            saveCases();
+                            renderCases();
+                        }
+                        if (data.templates) {
+                            templates = data.templates;
+                            saveTemplates();
+                            renderTemplates();
+                        }
+                        if (data.break_count) {
+                            localStorage.setItem('aqa_atlas_break_count', data.break_count);
+                        }
+                        if (data.template_font) {
+                            localStorage.setItem('aqa_atlas_template_font', data.template_font);
+                        }
+                        if (data.template_font_size) {
+                            localStorage.setItem('aqa_atlas_template_font_size', data.template_font_size);
+                        }
+                        alert('Work file loaded!');
+                    } catch {
+                        alert('Invalid file.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+        }
+    </script>
+</body>
+</html>
