@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>In-Browser Code IDE</title>
+  <!-- CodeMirror CSS & JS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/html-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/javascript-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/css-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg: #23272e;
+      --fg: #eee;
+      --sidebar-bg: #181b20;
+      --sidebar-fg: #eee;
+      --editor-bg: #1e2227;
+      --editor-fg: #eee;
+      --modal-bg: #23272e;
+      --modal-fg: #eee;
+      --border: #444;
+      --selected: #444a55;
+      --context-bg: #23272e;
+      --context-fg: #eee;
+    }
+    body {
+      font-family: 'Fira Mono', monospace;
+      background: var(--bg);
+      color: var(--fg);
+      margin: 0;
+    }
+    .main-layout { display: flex; height: 90vh; width: -webkit-fill-available; margin: 2em; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 12px #0008; }
+    .sidebar { background: var(--sidebar-bg); color: var(--sidebar-fg); min-width: 220px; max-width: 300px; padding: 1em; overflow-y: auto; }
+    .sidebar ul { list-style: none; padding-left: 0em; margin-top: 0em;}
+    .sidebar li { cursor: pointer; padding: 0.2em 0.5em; border-radius: 4px; user-select: none; }
+    .sidebar li.selected { background: var(--selected); }
+    .sidebar .folder { font-weight: bold; }
+    .editor-container { flex: 1; display: flex; }
+    .editor-area { flex: 1; background: var(--editor-bg); }
+    .CodeMirror { height: 100%; width: 100%; font-size: 1em; background: var(--editor-bg); color: var(--editor-fg); }
+    .toolbar {
+      width: -webkit-fill-available;
+      margin: 2em 2em 0 2em;
+      display: flex;
+      align-items: center;
+      background: var(--sidebar-bg);
+      border-radius: 6px;
+      box-shadow: 0 1px 4px #0002;
+      border: 1px solid var(--border);
+      padding: 0.5em 1em;
+      gap: 0.5em;
+      min-height: 48px;
+    }
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+      margin-right: 0em;
+    }
+    .toolbar-separator {
+      width: 1px;
+      height: 2em;
+      background: var(--border);
+      margin: 0 0.5em;
+      border-radius: 1px;
+    }
+    .toolbar button,
+    .modal button {
+      background: #282c34;
+      color: #eee;
+      border: none;
+      padding: 0.5em 1.5em;
+      border-radius: 4px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+    }
+    .toolbar button:hover, .toolbar button:focus,
+    .modal button:hover, .modal button:focus {
+      background: #444a55;
+      outline: none;
+    }
+    .toolbar-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .toolbar-dropdown-btn {
+      background: none;
+      border: none;
+      color: var(--fg);
+      font-size: 1.1em;
+      padding: 0.4em 0.8em;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+    }
+    .toolbar-dropdown-btn:hover, .toolbar-dropdown-btn:focus {
+      background: var(--selected);
+      outline: none;
+    }
+    .toolbar-dropdown-content {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: 110%;
+      background: var(--sidebar-bg);
+      color: var(--fg);
+      min-width: 180px;
+      box-shadow: 0 2px 8px #0003;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      z-index: 100;
+      padding: 0.3em 0;
+    }
+    .toolbar-dropdown-content button {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--fg);
+      text-align: left;
+      padding: 0.6em 1.2em;
+      font-size: 1em;
+      border-radius: 0;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    .toolbar-dropdown-content button:hover, .toolbar-dropdown-content button:focus {
+      background: var(--selected);
+      outline: none;
+    }
+    .toolbar-dropdown.open .toolbar-dropdown-content {
+      display: block;
+    }
+    .modal-backdrop {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); display: none;
+      align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal { background: var(--modal-bg); color: var(--modal-fg); padding: 2em; border-radius: 8px; box-shadow: 0 2px 12px #000a; min-width: 300px; text-align: center; }
+    .modal input[type="text"] { width: 80%; padding: 0.5em; margin: 1em 0; border-radius: 4px; border: 1px solid var(--border); background: var(--editor-bg); color: var(--editor-fg); font-size: 1em; }
+    .modal .modal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1em;
+      margin-top: 1em;
+    }
+    .modal button {
+      margin: 0;
+    }
+    #contextMenu {
+      background: var(--context-bg);
+      color: var(--context-fg);
+      border: 1px solid var(--border);
+      padding: 0.5em 0;
+      border-radius: 6px;
+      list-style: none;
+      min-width: 120px;
+    }
+    /* Responsive */
+    @media (max-width: 900px) {
+      .main-layout, .toolbar { width: 98vw; }
+    }
+    .sidebar button.plus-btn {
+      background: none;
+      border: none;
+      color: var(--fg);
+      font-size: 1em;
+      padding: 0 0.4em;
+      margin-left: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    .sidebar button.plus-btn:hover,
+    .sidebar button.plus-btn:focus {
+      background: var(--selected);
+      color: var(--fg);
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button id="newFileBtn" title="New File"><span class="icon">📄</span>New File</button>
+      <button id="newFolderBtn" title="New Folder"><span class="icon">📁</span>New Folder</button>
+      <button id="renameProjectBtn" title="Rename Project"><span class="icon">✏️</span>Rename Project</button>
+      <div class="toolbar-dropdown" id="fileDropdown">
+        <button class="toolbar-dropdown-btn" id="fileDropdownBtn"><span class="icon">📂</span>File ▼</button>
+        <div class="toolbar-dropdown-content" id="fileDropdownContent">
+          <button id="openProjectBtn"><span class="icon">📂</span>Open Project</button>
+          <button id="saveFileBtn"><span class="icon">💾</span>Save File</button>
+          <button id="saveProjectBtn"><span class="icon">🗜️</span>Save Project</button>
+          <button id="clearIdeBtn"><span class="icon">🧹</span>Clear IDE</button>
+          <button id="downloadIdeBtn"><span class="icon">⬇️</span>Download Editor</button>
+        </div>
+      </div>
+    </div>
+    <span class="toolbar-separator"></span>
+    <div class="toolbar-group">
+      <button id="wrapBtn" title="Toggle Word Wrap"><span class="icon">↩️</span><span id="wrapBtnText">Word Wrap: Off</span></button>
+      <button id="themeBtn" title="Toggle Theme"><span class="icon">🌓</span><span id="themeBtnText">Theme: Dark</span></button>
+    </div>
+    <span class="toolbar-separator"></span>
+    <div class="toolbar-group">
+      <button id="aboutBtn" title="About"><span class="icon">❓</span>About</button>
+    </div>
+    <input type="file" id="projectInput" accept=".zip" style="display:none" />
+  </div>
+  <div class="main-layout">
+    <div class="sidebar">
+      <ul id="fileTree"></ul>
+    </div>
+    <div class="editor-container">
+      <div class="editor-area">
+        <textarea id="codeArea"></textarea>
+      </div>
+    </div>
+  </div>
+  <!-- Context menu -->
+  <ul id="contextMenu" style="display:none;position:fixed;z-index:2000;">
+    <li id="ctxAddFile">Add File</li>
+    <li id="ctxAddFolder">Add Folder</li>
+    <li id="ctxRename">Rename</li>
+    <li id="ctxDelete">Delete</li>
+  </ul>
+  <!-- Modals -->
+  <div class="modal-backdrop" id="chooseTypeModal" style="display:none;">
+    <div class="modal">
+      <div>What would you like to add?</div>
+      <div class="modal-buttons" style="margin:1em 0;">
+        <button id="chooseNewFileBtn">New File</button>
+        <button id="chooseNewFolderBtn">New Folder</button>
+      </div>
+      <div class="modal-buttons">
+        <button id="chooseTypeCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="inputModal" style="display:none;">
+    <div class="modal">
+      <div id="inputModalPrompt"></div>
+      <input type="text" id="inputModalField" />
+      <div class="modal-buttons">
+        <button id="inputModalOk">OK</button>
+        <button id="inputModalCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="confirmModal" style="display:none;">
+    <div class="modal">
+      <div id="confirmModalPrompt"></div>
+      <div class="modal-buttons">
+        <button id="confirmModalOk">Yes</button>
+        <button id="confirmModalCancel">No</button>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop" id="aboutBackdrop" style="display:none;">
+    <div class="modal">
+      <h2>About In-Browser Code IDE</h2>
+      <p>
+        Simple HTML code editor with project support, line numbers, indentation, file operations, theming, and basic IntelliSense.<br>
+        <small>Made with ❤️ using HTML, CSS, JavaScript, and CodeMirror.</small>
+      </p>
+      <div class="modal-buttons">
+        <button id="aboutClose">Close</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // --- Project File System Model ---
+    let project = {
+      name: "My Project",
+      type: "folder",
+      children: [
+        { name: "index.html", type: "file", content: "<!-- Start coding! -->" }
+      ]
+    };
+    let currentFile = null;
+    let isDark = true;
+    let isWrap = false;
+    let expandedFolders = new Set();
+
+    // --- DOM Elements ---
+    const fileTree = document.getElementById('fileTree');
+    const codeArea = document.getElementById('codeArea');
+    const wrapBtn = document.getElementById('wrapBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const aboutBtn = document.getElementById('aboutBtn');
+    const aboutBackdrop = document.getElementById('aboutBackdrop');
+    const aboutClose = document.getElementById('aboutClose');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const filenameInput = document.getElementById('filenameInput');
+    const modalSave = document.getElementById('modalSave');
+    const modalCancel = document.getElementById('modalCancel');
+    const newFileBtn = document.getElementById('newFileBtn');
+    const newFolderBtn = document.getElementById('newFolderBtn');
+    const renameProjectBtn = document.getElementById('renameProjectBtn');
+    const saveFileBtn = document.getElementById('saveFileBtn');
+    const saveProjectBtn = document.getElementById('saveProjectBtn');
+    const openProjectBtn = document.getElementById('openProjectBtn');
+    const projectInput = document.getElementById('projectInput');
+    const clearIdeBtn = document.getElementById('clearIdeBtn');
+    const downloadIdeBtn = document.getElementById('downloadIdeBtn');
+    const fileDropdown = document.getElementById('fileDropdown');
+    const fileDropdownBtn = document.getElementById('fileDropdownBtn');
+    const wrapBtnText = document.getElementById('wrapBtnText');
+    const themeBtnText = document.getElementById('themeBtnText');
+
+    // --- CodeMirror Integration ---
+    function getMode(filename) {
+      if (filename.endsWith('.js')) return 'javascript';
+      if (filename.endsWith('.css')) return 'css';
+      return 'htmlmixed';
+    }
+    let codeMirror = CodeMirror.fromTextArea(codeArea, {
+      lineNumbers: true,
+      mode: getMode("index.html"),
+      theme: "default",
+      extraKeys: {"Ctrl-Space": "autocomplete"},
+      lineWrapping: false
+    });
+
+    function updateEditorForFile(file) {
+      codeMirror.setOption('mode', getMode(file.name));
+      codeMirror.setValue(file.content);
+    }
+    function saveCurrentFile() {
+      if (currentFile && currentFile.type === 'file') {
+        currentFile.content = codeMirror.getValue();
+      }
+    }
+
+    // --- File Tree Rendering ---
+    function renderTree(node, parentUl = fileTree, path = []) {
+      parentUl.innerHTML = '';
+      (node.children || []).forEach((child, idx) => {
+        const li = document.createElement('li');
+        li.style.position = "relative";
+        li.textContent = child.name;
+        li.className = child.type;
+        if (child === currentFile) li.classList.add('selected');
+        const thisPath = path.concat(idx).join('-');
+        if (child.type === 'folder') {
+          // Expand/collapse icon
+          const icon = document.createElement('span');
+          icon.textContent = expandedFolders.has(thisPath) ? '▼ ' : '▶ ';
+          icon.style.cursor = "pointer";
+          icon.onclick = e => {
+            e.stopPropagation();
+            if (expandedFolders.has(thisPath)) expandedFolders.delete(thisPath);
+            else expandedFolders.add(thisPath);
+            renderTree(project);
+          };
+          li.textContent = '';
+          li.appendChild(icon);
+          li.appendChild(document.createTextNode(child.name));
+          // "+" button for adding inside folder
+          const plusBtn = document.createElement('button');
+          plusBtn.textContent = '+';
+          plusBtn.className = 'plus-btn';
+          plusBtn.onclick = e => {
+            e.stopPropagation();
+            showAddMenu(child);
+          };
+          li.appendChild(plusBtn);
+        }
+        // File/folder select
+        li.onclick = e => {
+          e.stopPropagation();
+          if (child.type === 'file') {
+            saveCurrentFile();
+            currentFile = child;
+            updateEditorForFile(currentFile);
+            renderTree(project);
+          }
+        };
+        // Context menu
+        li.oncontextmenu = e => {
+          e.preventDefault();
+          showContextMenu(child, node, e.pageX, e.pageY);
+        };
+        parentUl.appendChild(li);
+        // Render children if expanded
+        if (child.type === 'folder' && expandedFolders.has(thisPath)) {
+          const subUl = document.createElement('ul');
+          li.appendChild(subUl);
+          renderTree(child, subUl, path.concat(idx));
+        }
+      });
+    }
+
+    // --- Context Menu Logic (with modals) ---
+    let ctxTarget = null, ctxParent = null;
+    const contextMenu = document.getElementById('contextMenu');
+    document.body.addEventListener('click', () => contextMenu.style.display = 'none');
+    function showContextMenu(target, parent, x, y) {
+      ctxTarget = target; ctxParent = parent;
+      contextMenu.style.display = 'block';
+      contextMenu.style.left = x + 'px';
+      contextMenu.style.top = y + 'px';
+    }
+    document.getElementById('ctxAddFile').onclick = () => {
+      contextMenu.style.display = 'none';
+      showInputModal("Enter new file name:", "untitled.html", name => {
+        if (!name) return;
+        if (!ctxTarget.children) ctxTarget.children = [];
+        ctxTarget.children.push({ name, type: "file", content: "" });
+        renderTree(project);
+      });
+    };
+    document.getElementById('ctxAddFolder').onclick = () => {
+      contextMenu.style.display = 'none';
+      showInputModal("Enter new folder name:", "folder", name => {
+        if (!name) return;
+        if (!ctxTarget.children) ctxTarget.children = [];
+        ctxTarget.children.push({ name, type: "folder", children: [] });
+        renderTree(project);
+      });
+    };
+    document.getElementById('ctxRename').onclick = () => {
+      contextMenu.style.display = 'none';
+      showInputModal("Rename:", ctxTarget.name, newName => {
+        if (newName && newName !== ctxTarget.name) {
+          ctxTarget.name = newName;
+          renderTree(project);
+        }
+      });
+    };
+    document.getElementById('ctxDelete').onclick = () => {
+      contextMenu.style.display = 'none';
+      showConfirmModal("Delete " + ctxTarget.name + "?", ok => {
+        if (ok) {
+          const idx = ctxParent.children.indexOf(ctxTarget);
+          if (idx !== -1) ctxParent.children.splice(idx, 1);
+          if (ctxTarget === currentFile) {
+            currentFile = null;
+            codeMirror.setValue("");
+          }
+          renderTree(project);
+        }
+      });
+    };
+
+    // "+" button menu for folders (with modal)
+    function showAddMenu(folder) {
+      showChooseTypeModal(type => {
+        if (type === 'file') {
+          showInputModal("Enter new file name:", "untitled.html", name => {
+            if (!name) return;
+            folder.children.push({ name, type: "file", content: "" });
+            renderTree(project);
+          });
+        } else if (type === 'folder') {
+          showInputModal("Enter new folder name:", "folder", name => {
+            if (!name) return;
+            folder.children.push({ name, type: "folder", children: [] });
+            renderTree(project);
+          });
+        }
+      });
+    }
+
+    // --- Modal helpers ---
+    function showInputModal(promptText, defaultValue, callback) {
+      document.getElementById('inputModalPrompt').textContent = promptText;
+      const field = document.getElementById('inputModalField');
+      field.value = defaultValue || '';
+      document.getElementById('inputModal').style.display = 'flex';
+      field.focus();
+      field.select();
+      function ok() {
+        document.getElementById('inputModal').style.display = 'none';
+        callback(field.value.trim() || null);
+        cleanup();
+      }
+      function cancel() {
+        document.getElementById('inputModal').style.display = 'none';
+        callback(null);
+        cleanup();
+      }
+      function cleanup() {
+        okBtn.removeEventListener('click', ok);
+        cancelBtn.removeEventListener('click', cancel);
+        field.removeEventListener('keydown', keyHandler);
+      }
+      function keyHandler(e) {
+        if (e.key === 'Enter') ok();
+        else if (e.key === 'Escape') cancel();
+      }
+      const okBtn = document.getElementById('inputModalOk');
+      const cancelBtn = document.getElementById('inputModalCancel');
+      okBtn.addEventListener('click', ok);
+      cancelBtn.addEventListener('click', cancel);
+      field.addEventListener('keydown', keyHandler);
+    }
+    function showConfirmModal(promptText, callback) {
+      document.getElementById('confirmModalPrompt').textContent = promptText;
+      document.getElementById('confirmModal').style.display = 'flex';
+      function ok() {
+        document.getElementById('confirmModal').style.display = 'none';
+        callback(true);
+        cleanup();
+      }
+      function cancel() {
+        document.getElementById('confirmModal').style.display = 'none';
+        callback(false);
+        cleanup();
+      }
+      function cleanup() {
+        okBtn.removeEventListener('click', ok);
+        cancelBtn.removeEventListener('click', cancel);
+      }
+      const okBtn = document.getElementById('confirmModalOk');
+      const cancelBtn = document.getElementById('confirmModalCancel');
+      okBtn.addEventListener('click', ok);
+      cancelBtn.addEventListener('click', cancel);
+    }
+    function showChooseTypeModal(callback) {
+      document.getElementById('chooseTypeModal').style.display = 'flex';
+      function cleanup() {
+        fileBtn.removeEventListener('click', fileHandler);
+        folderBtn.removeEventListener('click', folderHandler);
+        cancelBtn.removeEventListener('click', cancelHandler);
+      }
+      function fileHandler() {
+        document.getElementById('chooseTypeModal').style.display = 'none';
+        callback('file');
+        cleanup();
+      }
+      function folderHandler() {
+        document.getElementById('chooseTypeModal').style.display = 'none';
+        callback('folder');
+        cleanup();
+      }
+      function cancelHandler() {
+        document.getElementById('chooseTypeModal').style.display = 'none';
+        callback(null);
+        cleanup();
+      }
+      const fileBtn = document.getElementById('chooseNewFileBtn');
+      const folderBtn = document.getElementById('chooseNewFolderBtn');
+      const cancelBtn = document.getElementById('chooseTypeCancel');
+      fileBtn.addEventListener('click', fileHandler);
+      folderBtn.addEventListener('click', folderHandler);
+      cancelBtn.addEventListener('click', cancelHandler);
+    }
+
+    // --- Toolbar New File/Folder handlers using modals ---
+    newFileBtn.onclick = () => {
+      showInputModal("Enter new file name:", "untitled.html", name => {
+        if (!name) return;
+        project.children.push({ name, type: "file", content: "" });
+        renderTree(project);
+      });
+    };
+    newFolderBtn.onclick = () => {
+      showInputModal("Enter new folder name:", "folder", name => {
+        if (!name) return;
+        project.children.push({ name, type: "folder", children: [] });
+        renderTree(project);
+      });
+    };
+
+    // --- Project Name Modal on Startup ---
+    window.addEventListener('DOMContentLoaded', () => {
+      if (!project.name || project.name === "project") {
+        showInputModal("Enter project name:", "My Project", name => {
+          project.name = name || "My_Project";
+          renderTree(project);
+        });
+      }
+    });
+
+    // --- Toolbar Rename Project Button ---
+    renameProjectBtn.onclick = () => {
+      showInputModal("Rename project:", project.name, name => {
+        if (!name) return;
+        project.name = name;
+        renderTree(project);
+      });
+    };
+
+    // --- Save File (modal for filename) ---
+    saveFileBtn.onclick = () => {
+      if (!currentFile) return alert("No file selected.");
+      showInputModal("Save as:", currentFile.name, filename => {
+        if (!filename) return;
+        currentFile.name = filename;
+        saveCurrentFile();
+        const blob = new Blob([currentFile.content], {type: 'text/html'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        renderTree(project);
+      });
+    };
+
+    // --- Save Project as ZIP (update filename logic) ---
+    saveProjectBtn.onclick = () => {
+      saveCurrentFile();
+      const zip = new JSZip();
+      function addToZip(node, path) {
+        (node.children || []).forEach(child => {
+          if (child.type === 'file') {
+            zip.file(path + child.name, child.content);
+          } else if (child.type === 'folder') {
+            addToZip(child, path + child.name + "/");
+          }
+        });
+      }
+      addToZip(project, "");
+      let zipName = (project.name || "My_Project").replace(/\s+/g, "_");
+      zip.generateAsync({type:"blob"}).then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = zipName + ".zip";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+    };
+
+    // --- Open Project from ZIP ---
+    openProjectBtn.onclick = () => projectInput.click();
+    projectInput.onchange = function() {
+      const file = this.files[0];
+      if (!file) return;
+      JSZip.loadAsync(file).then(zip => {
+        const root = { name: file.name.replace(/\.zip$/i,''), type: "folder", children: [] };
+        const filePromises = [];
+        zip.forEach((relativePath, zipEntry) => {
+          if (zipEntry.dir) return;
+          filePromises.push(zipEntry.async("string").then(content => {
+            const parts = relativePath.split('/');
+            let node = root;
+            for (let i = 0; i < parts.length; i++) {
+              const part = parts[i];
+              if (i === parts.length - 1) {
+                node.children.push({ name: part, type: "file", content });
+              } else {
+                let folder = node.children.find(c => c.name === part && c.type === "folder");
+                if (!folder) {
+                  folder = { name: part, type: "folder", children: [] };
+                  node.children.push(folder);
+                }
+                node = folder;
+              }
+            }
+          }));
+        });
+        Promise.all(filePromises).then(() => {
+          project = root;
+          currentFile = null;
+          renderTree(project);
+          codeMirror.setValue("");
+        });
+      });
+      this.value = "";
+    };
+
+    // --- Word Wrap Toggle ---
+    wrapBtn.onclick = () => {
+      isWrap = !isWrap;
+      codeMirror.setOption('lineWrapping', isWrap);
+      wrapBtnText.textContent = "Word Wrap: " + (isWrap ? "On" : "Off");
+    };
+
+    // --- Theme Toggle with CSS variables ---
+    themeBtn.onclick = () => {
+      isDark = !isDark;
+      if (isDark) {
+        document.documentElement.style.setProperty('--bg', '#23272e');
+        document.documentElement.style.setProperty('--fg', '#eee');
+        document.documentElement.style.setProperty('--sidebar-bg', '#181b20');
+        document.documentElement.style.setProperty('--sidebar-fg', '#eee');
+        document.documentElement.style.setProperty('--editor-bg', '#1e2227');
+        document.documentElement.style.setProperty('--editor-fg', '#eee');
+        document.documentElement.style.setProperty('--modal-bg', '#23272e');
+        document.documentElement.style.setProperty('--modal-fg', '#eee');
+        document.documentElement.style.setProperty('--border', '#444');
+        document.documentElement.style.setProperty('--selected', '#444a55');
+        document.documentElement.style.setProperty('--context-bg', '#23272e');
+        document.documentElement.style.setProperty('--context-fg', '#eee');
+        themeBtnText.textContent = "Theme: Dark";
+      } else {
+        document.documentElement.style.setProperty('--bg', '#f5f5f5');
+        document.documentElement.style.setProperty('--fg', '#222');
+        document.documentElement.style.setProperty('--sidebar-bg', '#e0e0e0');
+        document.documentElement.style.setProperty('--sidebar-fg', '#222');
+        document.documentElement.style.setProperty('--editor-bg', '#fff');
+        document.documentElement.style.setProperty('--editor-fg', '#222');
+        document.documentElement.style.setProperty('--modal-bg', '#fff');
+        document.documentElement.style.setProperty('--modal-fg', '#222');
+        document.documentElement.style.setProperty('--border', '#bbb');
+        document.documentElement.style.setProperty('--selected', '#b3d1ff');
+        document.documentElement.style.setProperty('--context-bg', '#fff');
+        document.documentElement.style.setProperty('--context-fg', '#222');
+        themeBtnText.textContent = "Theme: Light";
+      }
+      codeMirror.refresh();
+    };
+
+    // --- About Modal ---
+    aboutBtn.onclick = () => {
+      aboutBackdrop.style.display = "flex";
+    };
+    aboutClose.onclick = () => {
+      aboutBackdrop.style.display = "none";
+    };
+    aboutBackdrop.onclick = function(e) {
+      if (e.target === aboutBackdrop) aboutBackdrop.style.display = "none";
+    };
+
+    // --- File Dropdown Logic ---
+    fileDropdownBtn.onclick = (e) => {
+      e.stopPropagation();
+      fileDropdown.classList.toggle('open');
+    };
+    document.addEventListener('click', (e) => {
+      if (!fileDropdown.contains(e.target)) {
+        fileDropdown.classList.remove('open');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') fileDropdown.classList.remove('open');
+    });
+
+    // --- Clear IDE ---
+    clearIdeBtn.onclick = () => {
+      fileDropdown.classList.remove('open');
+      showConfirmModal("This will clear your project and all files. Continue?", ok => {
+        if (ok) {
+          project = {
+            name: "My Project",
+            type: "folder",
+            children: [
+              { name: "index.html", type: "file", content: "<!-- Start coding! -->" }
+            ]
+          };
+          currentFile = project.children[0];
+          codeMirror.setValue(currentFile.content);
+          expandedFolders.clear();
+          expandedFolders.add('0');
+          renderTree(project);
+        }
+      });
+    };
+
+    // --- Download Editor (this HTML file) ---
+    downloadIdeBtn.onclick = () => {
+      fileDropdown.classList.remove('open');
+      fetch(window.location.href)
+        .then(resp => resp.text())
+        .then(html => {
+          const blob = new Blob([html], {type: 'text/html'});
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'code_ide.html';
+          a.click();
+          URL.revokeObjectURL(a.href);
+        })
+        .catch(() => {
+          alert("Unable to download this file. Try right-clicking this page and choosing 'Save As' instead.");
+        });
+    };
+
+    // --- Initial Render ---
+    currentFile = project.children[0];
+    codeMirror.setOption('mode', getMode(currentFile.name));
+    codeMirror.setValue(currentFile.content);
+    expandedFolders.add('0'); // expand root by default
+    renderTree(project);
+
+    // --- Keep file content in sync on editor change ---
+    codeMirror.on('change', () => {
+      if (currentFile && currentFile.type === 'file') {
+        currentFile.content = codeMirror.getValue();
+      }
+    });
+  </script>
+</body>
+</html>
