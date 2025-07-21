@@ -1,0 +1,67 @@
+{
+    "runs_needed": [
+        {
+            "promptKeywords": [
+                "angry",
+                "avoiding eye contact",
+                "fearful",
+                "looking around",
+                "nervous",
+                "shaking"
+            ],
+            "allowedActions": [
+                "Search person"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "dilated pupils",
+                "fake insurance",
+                "green crumbs",
+                "red eyes",
+                "slurring speech",
+                "smells like alcohol",
+                "smells like cannabis",
+                "white powder around nose"
+            ],
+            "allowedActions": [
+                "Search and arrest"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "car accident witness"
+            ],
+            "allowedActions": [
+                "Ask for ID",
+                "Frisk driver",
+                "Order drug test"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "crime suspect",
+                "assault",
+                "robbery"
+            ],
+            "allowedActions": [
+                "Detain",
+                "Search",
+                "Arrest"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "expired parking meter",
+                "no valid insurance",
+                "speeding",
+                "tinted windows",
+                "ignored red light"
+            ],
+            "allowedActions": [
+                "Ask for ID",
+                "Issue ticket"
+            ]
+        }
+    ]
+}
