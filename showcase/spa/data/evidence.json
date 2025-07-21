@@ -14,11 +14,12 @@
                 "uncooperative"
             ],
             "allowedActions": [
-                "Search person"
+                "Searching"
             ]
         },
         {
             "promptKeywords": [
+                "angry",
                 "dilated pupils",
                 "fake insurance",
                 "green crumbs",
