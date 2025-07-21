@@ -2,19 +2,36 @@
     "runs_needed": [
         {
             "promptKeywords": [
-                "angry",
-                "avoiding eye contact",
-                "fearful",
-                "looking around",
-                "nervous",
-                "shaking",
-                "sweating",
+                "Driving under the influence of alcohol",
+                "Driving under the influence of drugs",
+                "Fake ID",
+                "No valid driver license",
+                "Possessing drugs",
+                "Stolen car",
+                "Open warrant",
                 "fidgeting",
                 "acting suspicious",
                 "uncooperative"
             ],
             "allowedActions": [
-                "Searching"
+                "Handcuffing / Arresting"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "Angry",
+                "Avoiding eye contact",
+                "Fearful",
+                "Looking around",
+                "Nervous",
+                "Shaking",
+                "Sweating",
+                "Fidgeting",
+                "acting suspicious",
+                "uncooperative"
+            ],
+            "allowedActions": [
+                "Frisking"
             ]
         },
         {
