@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF‑8" />
+        <meta name="viewport" content="width=device‑width,initial‑scale=1.0" />
+        <title>Police Simulator Companion</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                padding: 1rem;
+                background: #f8f9fa;
+            }
+
+            input {
+                width: 100%;
+                padding: 0.8rem;
+                font-size: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .action {
+                padding: 0.5rem;
+                border-radius: 4px;
+                margin: 0.25rem 0;
+            }
+
+            .search {
+                background: #ffe5cc;
+            }
+
+            .arrest {
+                background: #ffcccc;
+            }
+
+            .ticket {
+                background: #e0e0e0;
+            }
+
+            .info {
+                background: #d0ebff;
+            }
+
+            .no-match {
+                color: #888;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1>🧠 Police Simulator Companion</h1>
+        <input id="intuitionInput" placeholder="Type intuition (e.g. 'red eyes')" autofocus />
+        <div id="results">Start typing to see allowed Police Simulator actions...</div>
+
+        <script>
+            let evidenceData = [];
+
+            async function loadEvidence() {
+                const res = await fetch('evidence.json');
+                evidenceData = await res.json();
+            }
+
+            function evaluatePrompt(text) {
+                const resultsEl = document.getElementById('results');
+                resultsEl.innerHTML = '';
+                const q = text.toLowerCase();
+
+                if (!q) {
+                    resultsEl.textContent = 'Start typing to see allowed Police Simulator actions...';
+                    return;
+                }
+
+                const matched = new Set();
+
+                evidenceData.runs_needed.forEach(entry => {
+                    entry.promptKeywords.forEach(k => {
+                        if (k.includes(q)) {
+                            entry.allowedActions.forEach(a => matched.add(a));
+                        }
+                    });
+                });
+
+                if (matched.size) {
+                    matched.forEach(a => {
+                        const div = document.createElement('div');
+                        let cls = 'info';
+                        if (a.toLowerCase().includes('search')) cls = 'search';
+                        else if (a.toLowerCase().includes('arrest') || a.toLowerCase().includes('detain')) cls = 'arrest';
+                        else if (a.toLowerCase().includes('ticket')) cls = 'ticket';
+                        div.textContent = '✔ ' + a;
+                        div.className = 'action ' + cls;
+                        resultsEl.appendChild(div);
+                    });
+                } else {
+                    resultsEl.innerHTML = '<div class="no-match">No Section 6.1 actions found.</div>';
+                }
+            }
+
+            document.getElementById('intuitionInput').addEventListener('input', e => {
+                evaluatePrompt(e.target.value);
+            });
+
+            loadEvidence();
+        </script>
+    </body>
+
+</html>
