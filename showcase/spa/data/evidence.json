@@ -7,7 +7,11 @@
                 "fearful",
                 "looking around",
                 "nervous",
-                "shaking"
+                "shaking",
+                "sweating",
+                "fidgeting",
+                "acting suspicious",
+                "uncooperative"
             ],
             "allowedActions": [
                 "Search person"
@@ -22,7 +26,11 @@
                 "slurring speech",
                 "smells like alcohol",
                 "smells like cannabis",
-                "white powder around nose"
+                "white powder around nose",
+                "drug paraphernalia",
+                "alcohol container",
+                "open bottle",
+                "needle marks"
             ],
             "allowedActions": [
                 "Search and arrest"
@@ -30,7 +38,9 @@
         },
         {
             "promptKeywords": [
-                "car accident witness"
+                "car accident witness",
+                "witness",
+                "eyewitness"
             ],
             "allowedActions": [
                 "Ask for ID",
@@ -42,7 +52,11 @@
             "promptKeywords": [
                 "crime suspect",
                 "assault",
-                "robbery"
+                "robbery",
+                "theft",
+                "burglary",
+                "vandalism",
+                "hit and run"
             ],
             "allowedActions": [
                 "Detain",
@@ -56,11 +70,79 @@
                 "no valid insurance",
                 "speeding",
                 "tinted windows",
-                "ignored red light"
+                "ignored red light",
+                "illegal parking",
+                "broken tail light",
+                "expired registration",
+                "no seatbelt",
+                "illegal u-turn",
+                "expired license"
             ],
             "allowedActions": [
                 "Ask for ID",
                 "Issue ticket"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "stolen vehicle",
+                "vehicle reported stolen",
+                "fake license plate"
+            ],
+            "allowedActions": [
+                "Detain",
+                "Search vehicle",
+                "Arrest"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "public intoxication",
+                "drunk in public",
+                "disorderly conduct"
+            ],
+            "allowedActions": [
+                "Detain",
+                "Arrest"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "open container",
+                "drinking in public"
+            ],
+            "allowedActions": [
+                "Issue ticket",
+                "Confiscate alcohol"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "minor in possession",
+                "underage drinking"
+            ],
+            "allowedActions": [
+                "Detain minor",
+                "Confiscate alcohol"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "unlicensed driver",
+                "driving without license"
+            ],
+            "allowedActions": [
+                "Detain",
+                "Issue ticket"
+            ]
+        },
+        {
+            "promptKeywords": [
+                "outstanding warrant",
+                "wanted person"
+            ],
+            "allowedActions": [
+                "Arrest"
             ]
         }
     ]
