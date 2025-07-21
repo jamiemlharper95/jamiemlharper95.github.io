@@ -1,0 +1,26 @@
+[
+    {
+        "title": "Orbital Commons Explorer",
+        "description": "An interactive map app for orbital debris tracking.",
+        "type": "WebApp",
+        "url": "https://yourdomain.com/orbital-explorer"
+    },
+    {
+        "title": "Lunar Drift",
+        "description": "A sci-fi game exploring lunar base operations.",
+        "type": "Game",
+        "url": "https://yourdomain.com/lunar-drift"
+    },
+    {
+        "title": "Echoes of the Stars",
+        "description": "My debut science fiction novel.",
+        "type": "Book",
+        "url": "https://yourdomain.com/echoes-novel"
+    },
+    {
+        "title": "Follow me on Mastodon",
+        "description": "Thoughts on tech, space, and sustainability.",
+        "type": "Social",
+        "url": "https://mastodon.social/@yourhandle"
+    }
+]
