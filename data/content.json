@@ -18,9 +18,15 @@
         "url": "https://yourdomain.com/echoes-novel"
     },
     {
-        "title": "Follow me on Mastodon",
-        "description": "Thoughts on tech, space, and sustainability.",
+        "title": "Follow me on Twitch",
+        "description": "My channel JamieHarperUK",
         "type": "Social",
-        "url": "https://mastodon.social/@yourhandle"
+        "url": "https://www.twitch.tv/jamieharperuk"
+    },
+    {
+        "title": "Follow me on X",
+        "description": "My X profile @JamieHarperUK",
+        "type": "Social",
+        "url": "https://x.com/JamieHarperUK"
     }
 ]
