@@ -1,4 +1,16 @@
 {
-  "metadata": {},
-  "content": {}
+  "metadata": {
+    "title": "Arcane Requiem",
+    "author": "Jamie Harper",
+    "published": ["01", "09", "2025"],
+    "description": ""
+  },
+  "content": [
+    {
+      "name": "Part 1",
+      "lines": [
+        ""
+      ]
+    }
+  ]
 }
