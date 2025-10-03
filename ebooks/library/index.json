@@ -2,8 +2,8 @@
   {
     "storyId": "jhs-0102",
     "storyTitle": "Arcane Requiem",
-    "storyCover": "#",
-    "storyIcon": "#",
+    "storyCover": "https://jamiemlharper95.github.io/ebooks/assets/arcane-requiem-cover.png",
+    "storyIcon": "https://jamiemlharper95.github.io/ebooks/assets/arcane-requiem-icon.png",
     "storyJson": "https://jamiemlharper95.github.io/ebooks/library/arcane-requiem.json",
     "authorName": "Jamie Harper",
     "publishDate": "01/09/2025"
