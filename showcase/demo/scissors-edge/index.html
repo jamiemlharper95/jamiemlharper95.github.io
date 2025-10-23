@@ -1,0 +1,688 @@
+<!doctype html>
+<!--
+  Scissors Edge — Single-file SPA (HTML)
+  Revised: hash-based JS page switching, Unsplash images, Price List (male barber focus), refined red/black/white palette.
+  Edit images, contact, and prices to suit the salon.
+-->
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scissors Edge — Altrincham Barber</title>
+    <meta name="description"
+      content="Scissors Edge barber in Altrincham — men's cuts, fades, beard trims & grooming. Book online or call us." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="https://jamiemlharper95.github.io/showcase/logos/se-logo-1.png" type="image/png">
+    <style>
+      :root {
+        --red: #b91018;
+        /* signature red */
+        --deep-red: #99141f;
+        --black: #0b0b0b;
+        --offwhite: #fbfbfb;
+        --muted: #6b6b6b;
+        --card-shadow: 0 8px 30px rgba(11, 11, 11, 0.08);
+        --max-width: 1100px;
+        --radius: 12px;
+        --spacing-xs: 8px;
+        --spacing-sm: 12px;
+        --spacing-md: 20px;
+        --spacing-lg: 28px;
+      }
+
+      * {
+        box-sizing: border-box
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: Inter, system-ui, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+        background: var(--offwhite);
+        color: var(--black);
+        -webkit-font-smoothing: antialiased
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none
+      }
+
+      /* Header */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background: linear-gradient(90deg, var(--black), #111 60%, var(--red));
+        color: #fff;
+        border-bottom: 4px solid var(--red)
+      }
+
+      .container {
+        max-width: var(--max-width);
+        margin: 0 auto;
+        padding: 0 20px
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-sm) 20px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px
+      }
+
+      .logo {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--offwhite), var(--offwhite));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 900;
+        font-size: 18px;
+        padding: 2px;
+      }
+
+      .brand h1 {
+        font-size: 18px;
+        margin: 0
+      }
+
+      nav {
+        margin-left: auto;
+      }
+
+      nav ul {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      nav li a {
+        padding: 8px 12px;
+        border-radius: 8px;
+        color: #fff;
+        opacity: 0.95
+      }
+
+      nav li a.active {
+        background: rgba(255, 255, 255, 0.06);
+        border-bottom: 3px solid var(--red);
+        font-weight: 700
+      }
+
+      .cta {
+        cursor: pointer;
+        background: var(--red);
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-weight: 700;
+        box-shadow: 0 6px 18px rgba(200, 16, 36, 0.16)
+      }
+
+      /* Main layout */
+      main {
+        padding: var(--spacing-lg) 0
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 20px;
+        align-items: center
+      }
+
+      .hero-card {
+        height: -webkit-fill-available;
+        background-image: url(https://images.unsplash.com/photo-1577467014381-aa7c13dbf331);
+        background-size: cover;
+        background-color: rgba(255, 255, 255, 0.75);
+        background-blend-mode: lighten;
+        border-radius: var(--radius);
+        padding: var(--spacing-lg);
+        box-shadow: var(--card-shadow)
+      }
+
+      .hero h2 {
+        margin: 0;
+        font-size: 28px
+      }
+
+      .lead {
+        color: var(--muted);
+        margin-top: 8px
+      }
+
+      .quick {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid #eee
+      }
+
+      /* Sections */
+      section {
+        margin-top: var(--spacing-lg);
+        padding-top: 0 !important
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px
+      }
+
+      .card {
+        background: #fff;
+        padding: var(--spacing-md);
+        border-radius: 12px;
+        box-shadow: var(--card-shadow)
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 15px
+      }
+
+      /* Services & Prices */
+      .services .grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))
+      }
+
+      .price-list {
+        display: grid;
+        grid-template-columns: 1fr 120px;
+        gap: 8px;
+        align-items: center;
+        padding: var(--spacing-sm) 0;
+        border-bottom: 1px dashed #eee
+      }
+
+      /* Gallery */
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-md)
+      }
+
+      .gallery img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 8px
+      }
+
+      /* Contact */
+      form {
+        display: grid;
+        gap: 12px
+      }
+
+      input,
+      textarea,
+      select,
+      button {
+        padding: var(--spacing-sm);
+        margin-top: var(--spacing-xs);
+        border-radius: 10px;
+        border: 1px solid #e6e6e6;
+        font-family: inherit
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical
+      }
+
+      label {
+        display: block;
+        margin-bottom: var(--spacing-xs)
+      }
+
+      /* Footer */
+      footer {
+        border-top: 1px solid #eee;
+        padding: var(--spacing-md) 0;
+        margin-top: var(--spacing-lg)
+      }
+
+      /* Modal */
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(11, 11, 11, 0.55);
+        z-index: 60;
+        visibility: hidden;
+        opacity: 0;
+        transition: all .18s
+      }
+
+      .modal.open {
+        visibility: visible;
+        opacity: 1
+      }
+
+      .modal .panel {
+        background: #fff;
+        padding: 20px;
+        border-radius: 14px;
+        max-width: 520px;
+        width: fit-content;
+      }
+
+      /* Responsive */
+      @media (max-width:1000px) {
+        .hero {
+          grid-template-columns: 1fr
+        }
+
+        .nav {
+          justify-content: center; /* Center brand on mobile */
+        }
+
+        nav ul {
+          display: none;
+        }
+      }
+
+      @media (max-width:700px) {
+        .grid {
+          grid-template-columns: repeat(2, 1fr)
+        }
+      }
+
+      @media (max-width:520px) {
+        .grid {
+          grid-template-columns: 1fr
+        }
+
+        .container {
+          padding: 0 12px
+        }
+      }
+
+      .image-panel {
+        max-width: 90vw !important;
+        max-height: 90vh;
+        padding: 12px !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        position: relative;
+      }
+
+      .image-panel img {
+        max-width: --webkit-fill-available;
+        max-height: 80vh;
+        object-fit: fill;
+        border-radius: 10px;
+      }
+
+      .close-btn {
+        position: absolute;
+        right: -15px;
+        top: -15px;
+        background: var(--black);
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 20px;
+        z-index: 70;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .close-btn:hover {
+        background: var(--red);
+        transform: scale(1.05);
+        transition: all 0.2s ease;
+      }
+
+      .contact-pills {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+      }
+
+      .hero-actions {
+        margin-top: 28px;
+        display: flex;
+        gap: 12px;
+      }
+
+      .secondary-btn {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        transition: all 0.2s ease;
+      }
+
+      .secondary-btn:hover {
+        background: var(--offwhite);
+        border-color: var(--red);
+      }
+
+      .hero-images {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .featured-image {
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+      }
+
+      .main-image {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.3s ease;
+      }
+
+      .main-image:hover {
+        transform: scale(1.02);
+      }
+
+      .info-card {
+        background: #fff;
+        padding: var(--spacing-md);
+        border-radius: var(--radius);
+        box-shadow: var(--card-shadow);
+      }
+
+      .walk-in-notice {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      @media (max-width: 1000px) {
+        .hero {
+          grid-template-columns: 1fr;
+          gap: var(--spacing-md);
+        }
+
+        .contact-pills {
+          gap: 8px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="container nav">
+        <div class="brand">
+          <div class="logo" aria-hidden><img src="https://jamiemlharper95.github.io/showcase/logos/se-logo-1.png" alt="SE" style="height: auto; width: -webkit-fill-available;"></div>
+          <div>
+            <h1 style="margin:0;font-weight:800">Scissors Edge</h1>
+            <div style="font-size:13px;opacity:0.9;letter-spacing: 0.5px;">Altrincham Barbers</div>
+          </div>
+        </div>
+
+        <nav aria-label="Main navigation">
+          <ul id="navList">
+            <li><a href="#home" data-route class="active">Home</a></li>
+            <li><a href="#gallery" data-route>Gallery</a></li>
+            <li><a href="#prices" data-route>Price List</a></li>
+            <li><a href="#contact" data-route>Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container" id="app">
+      <!-- HOME -->
+      <section id="home" data-page>
+        <div class="hero">
+          <div class="hero-card">
+            <h2>Professional barbering in the heart of Altrincham</h2>
+            <p class="lead">Classic cuts, modern fades, beard shaping and grooming — tailored for men. Walk-ins welcome.</p>
+            
+            <div class="hero-actions">
+              <a href="#prices" data-route class="secondary-btn">View Prices</a>
+              <a href="#contact" data-route class="secondary-btn">Contact Us</a>
+            </div>
+          </div>
+
+          <div class="hero-images">
+            <div class="featured-image">
+              <img src="https://images.unsplash.com/photo-1520338661084-680395057c93" alt="Professional barber service"
+                class="main-image">
+            </div>
+
+            <div class="info-card">
+              <h3>Welcome to Scissors Edge</h3>
+              <p class="muted">Our experienced team specializes in contemporary fades, traditional scissor work, and
+                precision beard design. Using premium products in a relaxed, professional atmosphere.</p>
+              <div class="walk-in-notice">
+                <strong>✓ Walk-ins Welcome</strong>
+                <span class="muted">Call ahead for quieter times</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GALLERY -->
+      <section id="gallery" data-page style="padding-top:6px">
+        <h2>Gallery</h2>
+        <p class="muted">Selected shots of our work and the shop.</p>
+        <div class="gallery" style="margin-top:10px">
+          <img
+            src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=3f6a1be4f5e2c2d8a5c4c7f8b0d6e1a2"
+            alt="barber tools">
+          <img
+            src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=1b2a3c4d5e6f7a8b9c0d1e2f3a4b5c6d"
+            alt="barber styling">
+          <img
+            src="https://images.unsplash.com/photo-1593702275687-f8b402bf1fb5?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=4c3b2a1d0e9f8a7b6c5d4e3f2a1b0c9d"
+            alt="fade haircut">
+          <img
+            src="https://images.unsplash.com/photo-1512690459411-b9245aed614b?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3&s=8a7b6c5d4e3f2a1b0c9d1e2f3a4b5c6d"
+            alt="barber interior">
+        </div>
+      </section>
+
+      <!-- PRICE LIST -->
+      <section id="prices" data-page style="padding-top:6px">
+        <h2>Price List</h2>
+        <p class="muted">Clear, competitive pricing for our core services. Ask a barber for add-ons and bespoke quotes.
+        </p>
+        <div style="margin-top:12px">
+          <div class="card">
+            <div class="price-list">
+              <div>Classic Cut & Finish</div>
+              <div style="text-align:right">£20</div>
+            </div>
+            <div class="price-list">
+              <div>Skin / Taper Fade</div>
+              <div style="text-align:right">£25</div>
+            </div>
+            <div class="price-list">
+              <div>Clipper Cut</div>
+              <div style="text-align:right">£15</div>
+            </div>
+            <div class="price-list">
+              <div>Beard Trim & Shape</div>
+              <div style="text-align:right">£12</div>
+            </div>
+            <div class="price-list">
+              <div>Hot Towel Shave</div>
+              <div style="text-align:right">£22</div>
+            </div>
+            <div class="price-list">
+              <div>Grooming Package (Cut + Beard + Hot Towel)</div>
+              <div style="text-align:right">£35</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONTACT / BOOKING -->
+      <section id="contact" data-page style="padding-top:6px">
+        <h2>Contact & Bookings</h2>
+        <p class="muted">Send a booking enquiry or call us directly. We’ll confirm availability as soon as possible.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:18px;margin-top:12px">
+          <div class="card">
+            <p style="padding: 0px; margin: 0px 0px 20px 0px; text-align: center; color: #CCCCCC; font-style: italic;">Please be advised, the below booking form is for demonstration purposes only.<br>No bookings made via this specific form (or the "Book Appointment" button) will be honored.</p>
+            <script src="https://embed.ycb.me"	async="true"	data-domain="jayhconsultancy"	data-displaymode="light"></script>
+          </div>
+
+          <aside class="card">
+            <h4 style="margin-top: 0px;margin-bottom: 0px;">Find us</h4>
+            <p class="muted" style="margin-top: 0px;">89 Manchester Road, Altrincham,<br>WA14 4RJ</p>
+            <div style="border-radius:10px;overflow:hidden;margin-top:8px">
+              <iframe title="Map to Scissors Edge"
+                src="https://www.google.com/maps?q=Scissor's+Edge+89+Manchester+Road+Altrincham+WA14+4RJ&output=embed"
+                style="border:0;width:100%;height:200px;display:block" loading="lazy"></iframe>
+            </div>
+
+            <div style="margin-top:12px">
+              <strong>Hours</strong>
+              <div class="muted">Mon–Fri 09:00–18:00<br>Sat 09:00–17:00<br>Sun Closed</div>
+            </div>
+
+            <div style="margin-top:12px">
+              <strong>Phone</strong>
+              <div class="muted">
+                <a href="tel:+447821808820">07821 80 88 20</a>
+              </div>
+            </div>
+
+            <div style="margin-top:12px">
+              <strong>Email</strong>
+              <div class="muted">
+                <a href="mailto:chabanesofiene79@gmail.com">chabanesofiene79@gmail.com</a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- TESTIMONIALS / CTA -->
+      <section style="padding-top:6px">
+        <div class="card">
+          <h3 style="margin-top: 0px;">What our clients say</h3>
+          <blockquote class="muted" style="margin:10px 0">"Always a great cut and solid beard trim." — Lee</blockquote>
+          <blockquote class="muted" style="margin:10px 0">"Friendly barbers and quick service." — Marcus</blockquote>
+        </div>
+      </section>
+
+      <footer>
+        <div class="container"
+          style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-weight:800;color:var(--red);">Scissors Edge</div>
+            <div class="muted">89 Manchester Road, Altrincham WA14 4RJ — <a href="tel:+447821808820">07821 80 88 20</a>
+            </div>
+          </div>
+          <div class="muted">&copy; <span id="year"></span> Scissors Edge — All rights reserved</div>
+        </div>
+      </footer>
+
+      <div id="imageModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="panel image-panel">
+          <button class="close-btn" id="closeImageModal" aria-label="Close">&times;</button>
+          <img id="modalImage" src="" alt="" />
+        </div>
+      </div>
+
+      <!-- YCB Booking Button -->
+      <script src="https://embed.ycb.me"	async="true"	data-domain="jayhconsultancy"	data-content="all"	data-type="button-floating"	data-innertext="Book Appointment"	data-buttonicon="calendar"	data-buttonposition="bottomRight"	data-buttoncolor="#B91018"	data-displaymode="light"></script>
+
+    </main>
+
+    <script>
+      // SPA: simple hash-based page switching. Sections marked with [data-page]
+      const pages = document.querySelectorAll('[data-page]');
+      const links = document.querySelectorAll('[data-route]');
+
+      function showPage(hash) {
+        const id = (hash && hash.startsWith('#')) ? hash.slice(1) : 'home';
+        pages.forEach(p => p.style.display = (p.id === id) ? 'block' : 'none');
+        links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === ('#' + id)));
+        // scroll to top of main area for better UX
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      window.addEventListener('hashchange', () => showPage(location.hash));
+      document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('year').textContent = new Date().getFullYear();
+        // initial page
+        showPage(location.hash || '#home');
+      });
+
+      // Gallery: open full image in new tab
+      const imageModal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+
+      document.querySelectorAll('.gallery img').forEach(img => {
+        img.style.cursor = 'zoom-in';
+        img.addEventListener('click', () => {
+          modalImage.src = img.src;
+          modalImage.alt = img.alt;
+          imageModal.classList.add('open');
+          imageModal.setAttribute('aria-hidden', 'false');
+        });
+      });
+
+      document.getElementById('closeImageModal').addEventListener('click', () => {
+        imageModal.classList.remove('open');
+        imageModal.setAttribute('aria-hidden', 'true');
+      });
+
+      imageModal.addEventListener('click', (e) => {
+        if (e.target === imageModal) {
+          imageModal.classList.remove('open');
+          imageModal.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      // Accessibility: Escape closes modal
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); } });
+
+    </script>
+  </body>
+
+</html>
